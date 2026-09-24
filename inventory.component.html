@@ -1,0 +1,89 @@
+<div class="cabecera">
+  <div>
+    <h1 class="fp-heading">Inventario del gimnasio</h1>
+    <p class="subtitle">Lo que registres aquí es lo que el socio ve en la app antes de venir</p>
+  </div>
+  <button class="fp-btn fp-btn-primary" (click)="abrirForm()" *ngIf="!mostrandoForm">
+    Agregar equipo
+  </button>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+
+<form class="fp-card" [formGroup]="form" (ngSubmit)="guardar()" *ngIf="mostrandoForm">
+  <h3>Nuevo equipo o actividad</h3>
+  <p class="fp-card-sub">Por ejemplo: prensa de piernas, caminadoras, clase de spinning</p>
+
+  <div class="fp-grid-2">
+    <div class="fp-field">
+      <label for="nombre">Nombre</label>
+      <input id="nombre" type="text" formControlName="nombre" placeholder="Prensa de piernas" />
+    </div>
+    <div class="fp-field">
+      <label for="categoria">Categoría</label>
+      <select id="categoria" formControlName="categoria">
+        <option *ngFor="let c of categorias" [value]="c.valor">{{ c.etiqueta }}</option>
+      </select>
+    </div>
+    <div class="fp-field">
+      <label for="cantidad">¿Cuántos tienes?</label>
+      <input id="cantidad" type="number" min="1" formControlName="cantidad" />
+    </div>
+    <div class="fp-field">
+      <label for="descripcion">Detalle (opcional)</label>
+      <input id="descripcion" type="text" formControlName="descripcion" placeholder="Carga por discos" />
+    </div>
+  </div>
+
+  <div class="acciones">
+    <button type="button" class="fp-btn fp-btn-secondary" (click)="cerrarForm()">Cancelar</button>
+    <button type="submit" class="fp-btn fp-btn-primary" [disabled]="form.invalid">Agregar</button>
+  </div>
+</form>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-grid-3">
+    <div class="fp-card conteo" data-tono="total">
+      <span class="cifra">{{ d.resumen.total }}</span>
+      <div><p class="k">En el inventario</p><p class="n">equipos y actividades</p></div>
+    </div>
+    <div class="fp-card conteo" data-tono="ok">
+      <span class="cifra">{{ d.resumen.disponibles }}</span>
+      <div><p class="k">Disponibles</p><p class="n">se ven en la app</p></div>
+    </div>
+    <div class="fp-card conteo" data-tono="malo">
+      <span class="cifra">{{ d.resumen.fueraDeServicio }}</span>
+      <div><p class="k">Fuera de servicio</p><p class="n">ocultos en la app</p></div>
+    </div>
+  </div>
+
+  <p class="fp-loading" *ngIf="cargando">Cargando inventario...</p>
+  <p class="fp-empty" *ngIf="!cargando && d.grupos.length === 0">
+    Todavía no registras nada. Empieza por lo que más usan tus socios.
+  </p>
+
+  <div class="fp-card" *ngFor="let g of d.grupos">
+    <h3>{{ g.etiqueta }}</h3>
+    <p class="fp-card-sub">{{ g.equipos.length }} en esta categoría</p>
+
+    <div class="equipo" *ngFor="let e of g.equipos" [class.apagado]="e.situacion === 'fuera_de_servicio'">
+      <div class="cantidad">{{ e.cantidad }}</div>
+      <div class="info">
+        <p class="nombre">{{ e.nombre }}</p>
+        <p class="detalle" *ngIf="e.descripcion">{{ e.descripcion }}</p>
+      </div>
+      <span class="fp-badge"
+            [class.fp-badge-green]="e.situacion === 'disponible'"
+            [class.fp-badge-red]="e.situacion === 'fuera_de_servicio'">
+        {{ e.situacion === 'disponible' ? 'Disponible' : 'Fuera de servicio' }}
+      </span>
+      <div class="botones">
+        <button class="fp-btn fp-btn-secondary" (click)="alternar(e)">
+          {{ e.situacion === 'disponible' ? 'Marcar fuera de servicio' : 'Volver a habilitar' }}
+        </button>
+        <button class="fp-btn fp-btn-secondary borrar" (click)="borrar(e)">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</ng-container>
