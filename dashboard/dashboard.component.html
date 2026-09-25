@@ -1,0 +1,117 @@
+<div>
+  <h1 class="fp-heading">Resumen del gimnasio</h1>
+  <p class="subtitle">Quién entró hoy y cómo va el mes</p>
+</div>
+
+<!-- Avisos: lo que el dueño tiene que atender antes que nada -->
+<div class="aviso aviso-plan" *ngIf="diasParaVencer !== null && diasParaVencer <= 30">
+  <div class="icono">!</div>
+  <div class="texto">
+    <p class="t">Tu plan FitPass se renueva en {{ diasParaVencer }} {{ diasParaVencer === 1 ? 'día' : 'días' }} — {{ fechaVencimiento | date: 'd \'de\' MMMM \'de\' y' }}</p>
+    <p class="d">Mantenlo al corriente para que el lector de QR siga activo.</p>
+  </div>
+  <a class="fp-btn fp-btn-primary" routerLink="/fitpass-plan">Ver mi plan</a>
+</div>
+
+<div class="aviso aviso-mant" *ngIf="reportesPendientes > 0">
+  <div class="icono">⚒</div>
+  <div class="texto">
+    <p class="t">Tienes {{ reportesPendientes }} {{ reportesPendientes === 1 ? 'reporte' : 'reportes' }} de mantenimiento sin atender</p>
+    <p class="d">{{ equiposConFalla }}</p>
+  </div>
+  <a class="fp-btn fp-btn-secondary" routerLink="/incidents">Ver reportes</a>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando datos del gimnasio...</p>
+
+<ng-container *ngIf="resumen as r">
+  <!-- Panel principal: el dato que el dueño revisa a diario -->
+  <section class="hero">
+    <div class="hero-main">
+      <p class="hero-label">Accesos hoy</p>
+      <p class="hero-value">{{ r.accesosHoy }}</p>
+      <p class="hero-note">
+        <span class="fp-badge" [class.fp-badge-green]="r.denegadosHoy === 0" [class.fp-badge-red]="r.denegadosHoy > 0">
+          {{ r.denegadosHoy }} {{ r.denegadosHoy === 1 ? 'denegado' : 'denegados' }}
+        </span>
+        <span class="hero-gym">{{ r.gimnasio.nombre }}</span>
+      </p>
+    </div>
+
+    <div class="hero-chart">
+      <p class="hero-chart-title">Entradas por hora</p>
+      <div class="horas">
+        <div class="hora" *ngFor="let b of barras" [title]="b.hora + ':00 · ' + b.visitas + ' entradas'">
+          <div class="hora-barra" [class.vacia]="b.visitas === 0" [style.height.%]="b.altura"></div>
+          <span class="hora-etiqueta">{{ b.etiqueta }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="fp-grid-3">
+    <div class="fp-card stat" *ngFor="let s of stats" [attr.data-tono]="s.tono">
+      <p class="stat-label">{{ s.label }}</p>
+      <p class="stat-value">{{ s.value }}</p>
+      <p class="stat-nota">{{ s.nota }}</p>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Accesos recientes</h3>
+    <p class="fp-card-sub">Últimos códigos QR leídos en la entrada</p>
+
+    <p class="fp-empty" *ngIf="r.ultimosAccesos.length === 0">
+      Todavía no hay lecturas. Escanea un código QR en la entrada y aparecerá aquí.
+    </p>
+
+    <table class="fp-table" *ngIf="r.ultimosAccesos.length > 0">
+      <thead>
+        <tr><th>Miembro</th><th>Código leído</th><th>Hora</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of r.ultimosAccesos" [class.fp-row-denied]="a.resultado === 'denegado'">
+          <td>
+            <div class="fp-person">
+              <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
+              <span>{{ a.cliente || 'Sin identificar' }}</span>
+            </div>
+          </td>
+          <td class="serie">{{ a.codigo_leido }}</td>
+          <td>{{ a.registrado_en | date: 'dd/MM/yyyy h:mm a' }}</td>
+          <td>
+            <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
+              {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="fp-card">
+    <h3>Lectores instalados</h3>
+    <p class="fp-card-sub">Estado de los lectores de QR</p>
+
+    <p class="fp-empty" *ngIf="r.lectores.length === 0">Este gimnasio aún no tiene lectores dados de alta.</p>
+
+    <table class="fp-table" *ngIf="r.lectores.length > 0">
+      <thead>
+        <tr><th>Número de serie</th><th>Ubicación</th><th>Última conexión</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of r.lectores">
+          <td class="serie">{{ l.numeroSerie }}</td>
+          <td>{{ l.ubicacion || '—' }}</td>
+          <td>{{ l.ultimaConexion ? (l.ultimaConexion | date: 'dd/MM/yyyy h:mm a') : 'Sin conexión' }}</td>
+          <td>
+            <span class="fp-badge" [class.fp-badge-green]="l.activo" [class.fp-badge-red]="!l.activo">
+              {{ l.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>
