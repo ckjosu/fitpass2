@@ -10,7 +10,12 @@
 </head>
 <body>
   <!-- Si la API no corre en localhost:8000, cambia esta linea. No hace falta recompilar. -->
-  <script>window.__GYMRED_API__ = 'http://localhost:8000/api';</script>
+  <script>
+    window.__GYMRED_API__ =
+      ['localhost', '127.0.0.1'].indexOf(location.hostname) >= 0
+        ? 'http://localhost:8000/api'
+        : 'https://fitpass2.onrender.com/api';
+  </script>
   <fp-root></fp-root>
 </body>
 </html>
