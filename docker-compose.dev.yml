@@ -1,0 +1,83 @@
+# =====================================================================
+# Gymred — ambiente de DESARROLLO
+#   docker compose -f docker-compose.dev.yml up -d --build
+#
+#   Angular     http://localhost:4200
+#   API         http://localhost:8000/api
+#   phpMyAdmin  http://localhost:8080
+#   MySQL       localhost:3306
+# =====================================================================
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: gymred-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: gymred
+      MYSQL_USER: gymred
+      MYSQL_PASSWORD: gymred123
+    ports:
+      - "3306:3306"
+    volumes:
+      - gymred_data_dev:/var/lib/mysql
+      - ./docker/dev/mysql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ugymred", "-pgymred123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./app-api
+      dockerfile: ../docker/dev/api/Dockerfile
+    container_name: gymred-api-dev
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: gymred
+      DB_PASSWORD: gymred123
+      DB_NAME: gymred
+      JWT_SECRET: gymred-secreto-itescam
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      # El codigo se monta para poder editar sin reconstruir la imagen.
+      - ./app-api/src:/app/src
+      - gymred_uploads_dev:/app/uploads
+
+  angular:
+    build:
+      context: ./app-angular
+      dockerfile: ../docker/dev/angular/Dockerfile
+    container_name: gymred-web-dev
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./app-angular/src:/app/src
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: gymred-phpmyadmin-dev
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "8080:80"
+
+volumes:
+  gymred_data_dev:
+  gymred_uploads_dev:

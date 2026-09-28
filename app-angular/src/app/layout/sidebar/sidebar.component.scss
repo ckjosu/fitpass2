@@ -1,0 +1,129 @@
+.sidebar {
+  width: var(--fp-sidebar-w);
+  min-height: 100vh;
+  background: var(--fp-ink);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 0 28px;
+  overflow-y: auto;
+}
+
+/* ---- Marca ---- */
+.logo-block {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 18px 20px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  border-radius: 11px;
+  background: var(--fp-orange);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.logo-icon svg { width: 20px; height: 20px; }
+.logo-title {
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 16.5px;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+.logo-sub { color: #7A7A85; font-size: 11px; margin: 0; }
+
+/* ---- Gimnasio activo ---- */
+.gym-block {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 12px 22px;
+  padding: 12px;
+  border-radius: var(--fp-radius);
+  background: var(--fp-ink-soft);
+  min-width: 0;
+}
+.gym-avatar {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(140deg, var(--fp-orange), var(--fp-orange-dark));
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.gym-text { min-width: 0; }
+.gym-name {
+  color: #fff; font-size: 13.5px; font-weight: 600; margin: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gym-plan { color: #8A8A95; font-size: 11.5px; margin: 0; }
+
+/* ---- Navegacion ---- */
+nav { display: flex; flex-direction: column; padding: 0 12px; }
+
+.nav-group {
+  color: #62626D;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin: 16px 0 6px;
+  padding: 0 12px;
+}
+.nav-group:first-child { margin-top: 0; }
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--fp-radius-ctrl);
+  color: #A2A2AC;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.nav-icon { width: 18px; height: 18px; flex: none; opacity: 0.85; }
+
+.nav-item:hover { background: var(--fp-ink-soft); color: #fff; }
+
+.nav-item.active {
+  background: var(--fp-orange);
+  color: #fff;
+  font-weight: 600;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+
+/* Riel que marca la seccion abierta */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 8px; bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--fp-orange);
+}
+
+/* ---- Pantallas angostas: solo iconos ---- */
+@media (max-width: 900px) {
+  .sidebar { width: 72px; padding: 18px 0 24px; align-items: center; }
+  .logo-block { padding: 0 0 18px; }
+  .logo-block > div:last-child,
+  .gym-text,
+  .nav-group,
+  .nav-label { display: none; }
+  .gym-block { margin: 0 0 18px; padding: 8px; background: none; }
+  nav { padding: 0 10px; width: 100%; }
+  .nav-item { justify-content: center; padding: 11px 0; }
+  .nav-item.active::before { display: none; }
+}

@@ -1,0 +1,49 @@
+.ajustes {
+  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 18px; border-bottom: 1px solid var(--fp-gray-border);
+}
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label { font-size: 12.5px; font-weight: 600; color: var(--fp-gray-mid); }
+.campo select {
+  font-family: 'Inter', sans-serif; font-size: 13.5px; color: var(--fp-carbon);
+  padding: 9px 12px; border-radius: var(--fp-radius-ctrl);
+  border: 1.5px solid var(--fp-gray-border); background: var(--fp-white); outline: none;
+}
+.campo select:focus { border-color: var(--fp-orange); box-shadow: var(--fp-ring); }
+
+.qr-zona { display: flex; gap: 32px; align-items: center; padding-top: 22px; flex-wrap: wrap; }
+.lienzo {
+  background: #fff; padding: 14px; border-radius: var(--fp-radius);
+  border: 1px solid var(--fp-gray-border);
+}
+.datos { flex: 1; min-width: 240px; }
+.rotulo { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 20px; margin: 0; }
+.donde { color: var(--fp-gray-mid); font-size: 13.5px; margin: 4px 0 16px; }
+.cuenta { font-size: 14px; margin: 0 0 10px; }
+.cuenta b { font-family: 'Poppins', sans-serif; font-size: 17px; color: var(--fp-orange-dark); }
+.codigo {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+  color: var(--fp-gray-soft); margin: 0 0 14px; word-break: break-all;
+}
+.nota { font-size: 12.5px; color: var(--fp-gray-mid); margin: 0; max-width: 50ch; }
+
+/* ---- Modo para la tablet de la entrada ---- */
+.completa {
+  position: fixed; inset: 0; z-index: 50;
+  background: var(--fp-ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+}
+.completa .marca {
+  font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 30px;
+  color: var(--fp-orange); margin: 0; letter-spacing: -0.03em;
+}
+.completa .caja { background: #fff; padding: 22px; border-radius: 22px; }
+.completa .instruccion { color: #fff; font-size: 20px; font-weight: 600; margin: 0; }
+.completa .temporizador { color: #8A8A98; font-size: 14px; margin: 0; }
+.completa .salir {
+  position: absolute; top: 20px; right: 22px;
+  font: 600 13px 'Inter', sans-serif; color: #8A8A98;
+  background: none; border: 1px solid #33333C; border-radius: var(--fp-radius-ctrl);
+  padding: 8px 14px; cursor: pointer;
+}
+.completa .salir:hover { color: #fff; border-color: #55555F; }

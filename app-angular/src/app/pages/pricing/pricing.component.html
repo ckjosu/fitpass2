@@ -1,0 +1,53 @@
+<div>
+  <h1 class="fp-heading">Gestión de precios</h1>
+  <p class="subtitle">Define los precios de tu propio gimnasio</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando precios...</p>
+
+<ng-container *ngIf="!cargando">
+  <div class="fp-card">
+    <h3>Planes actuales</h3>
+    <p class="fp-card-sub">Los defines tú. Gymred no los cobra: se le muestran al socio en la app</p>
+
+    <div class="price-row" *ngFor="let c of conceptos">
+      <span class="price-label">{{ c.etiqueta }}</span>
+
+      <ng-container *ngIf="editando !== c.clave">
+        <span class="price-value" [class.sin-definir]="!precioDe(c.clave)">
+          {{ precioDe(c.clave) ? ('$' + precioDe(c.clave)!.monto) : 'Sin definir' }}
+        </span>
+        <button class="fp-btn fp-btn-secondary" (click)="editar(c.clave)">
+          {{ precioDe(c.clave) ? 'Editar' : 'Agregar' }}
+        </button>
+      </ng-container>
+
+      <ng-container *ngIf="editando === c.clave">
+        <input class="price-input" type="number" min="1" [(ngModel)]="montoEditado" />
+        <button class="fp-btn fp-btn-primary" (click)="guardar(c.clave)">Guardar</button>
+        <button class="fp-btn fp-btn-secondary" (click)="cancelar()">Cancelar</button>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Historial de cambios</h3>
+    <p class="fp-card-sub">Se registra solo cada vez que modificas un precio</p>
+
+    <p class="fp-empty" *ngIf="historial.length === 0">Todavía no has cambiado ningún precio.</p>
+
+    <table class="fp-table" *ngIf="historial.length > 0">
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Precio anterior</th><th>Precio nuevo</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let h of historial">
+          <td>{{ h.cambiadoEn | date: 'dd/MM/yyyy h:mm a' }}</td>
+          <td>{{ etiqueta(h.concepto) }}</td>
+          <td class="monto">${{ h.montoAnterior }}</td>
+          <td class="monto monto-nuevo">${{ h.montoNuevo }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>

@@ -1,0 +1,399 @@
+/* ==========================================================================
+   Gymred — Panel Web — Estilos globales / design tokens
+   Tipografia: Poppins (titulos) + Inter (texto)
+   Paleta: naranja energia, azul confianza, negro carbon
+   ========================================================================== */
+
+:root {
+  /* Paleta */
+  --fp-orange: #EA580C;
+  --fp-orange-dark: #C2410C;
+  --fp-orange-light: #FFEDD5;
+  --fp-blue: #2563EB;
+  --fp-blue-dark: #1D4ED8;
+  --fp-blue-light: #DBEAFE;
+  --fp-carbon: #1E1E1E;
+  --fp-ink: #141416;          /* sidebar */
+  --fp-ink-soft: #232327;     /* hover dentro del sidebar */
+  --fp-gray-bg: #F6F6F8;
+  --fp-white: #FFFFFF;
+  --fp-gray-mid: #6B6B76;
+  --fp-gray-soft: #9A9AA4;
+  --fp-gray-border: #E6E6EB;
+  --fp-red: #DC2626;
+  --fp-red-light: #FEE2E2;
+  --fp-green: #16A34A;
+  --fp-green-light: #DCFCE7;
+
+  /* Superficies y textos derivados (cambian con el tema) */
+  --fp-line-soft: #F1F1F4;      /* separador entre filas */
+  --fp-hover: #FAFAFB;          /* fila al pasar el mouse */
+  --fp-on-red: #B91C1C;         /* texto sobre fondo rojo tenue */
+  --fp-on-green: #15803D;
+  --fp-on-orange: #7C3B18;
+  --fp-on-yellow: #7C4A0A;
+  --fp-warn-bg: #FFFBEB;
+  --fp-warn-border: #FDE68A;
+  --fp-warn-ink: #96621B;
+  --fp-soft-orange-bg: #FFF7F3;
+  --fp-soft-orange-border: #FBD5C0;
+  --fp-soft-orange-ink: #96562F;
+
+  /* Layout */
+  --fp-sidebar-w: 244px;
+
+  /* Radios: distintos segun jerarquia, no todo igual */
+  --fp-radius-pill: 999px;
+  --fp-radius-ctrl: 10px;
+  --fp-radius: 14px;
+  --fp-radius-lg: 20px;
+
+  /* Sombras en capas, no una sola gris plana */
+  --fp-shadow-sm: 0 1px 2px rgba(20, 20, 22, 0.05);
+  --fp-shadow: 0 1px 2px rgba(20, 20, 22, 0.05), 0 4px 12px rgba(20, 20, 22, 0.05);
+  --fp-shadow-lg: 0 2px 4px rgba(20, 20, 22, 0.04), 0 12px 32px rgba(20, 20, 22, 0.10);
+  --fp-ring: 0 0 0 3px rgba(234, 88, 12, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--fp-gray-bg);
+  color: var(--fp-carbon);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .fp-heading {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+h1, .fp-heading { font-size: 26px; line-height: 1.2; }
+
+/* Bajada que va debajo de cada titulo de pagina */
+.subtitle {
+  color: var(--fp-gray-mid);
+  font-size: 14px;
+  margin: 4px 0 0;
+  max-width: 62ch;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--fp-ring);
+  border-radius: var(--fp-radius-ctrl);
+}
+
+/* ---- Layout shell ---- */
+.fp-shell { display: flex; min-height: 100vh; }
+
+.fp-content {
+  margin-left: var(--fp-sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+}
+
+.fp-main {
+  flex: 1;
+  padding: 32px 36px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 1280px;
+  width: 100%;
+}
+
+/*
+  Angular envuelve el contenido de cada pagina en su elemento host
+  (<fp-dashboard>, <fp-settings>, ...). Sin esta regla el gap de arriba
+  se aplica al host y no a las tarjetas de adentro, y todo queda pegado.
+*/
+.fp-main > * {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.fp-main > router-outlet { display: none; }
+
+/* ---- Cards ---- */
+.fp-card {
+  background: var(--fp-white);
+  border: 1px solid var(--fp-gray-border);
+  border-radius: var(--fp-radius);
+  padding: 22px 24px;
+  box-shadow: var(--fp-shadow-sm);
+}
+
+.fp-card h3 {
+  font-size: 15.5px;
+  margin-bottom: 2px;
+}
+
+.fp-card .fp-card-sub {
+  font-size: 13px;
+  color: var(--fp-gray-mid);
+  margin: 0 0 18px;
+}
+
+/* ---- Buttons ---- */
+.fp-btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  border-radius: var(--fp-radius-ctrl);
+  padding: 10px 18px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.fp-btn-primary {
+  background: var(--fp-orange);
+  color: var(--fp-white);
+  box-shadow: 0 1px 2px rgba(194, 65, 12, 0.35);
+}
+.fp-btn-primary:hover:not(:disabled) { background: var(--fp-orange-dark); }
+.fp-btn-secondary {
+  background: var(--fp-white);
+  color: var(--fp-carbon);
+  border-color: var(--fp-gray-border);
+}
+.fp-btn-secondary:hover:not(:disabled) {
+  border-color: var(--fp-gray-soft);
+  background: var(--fp-gray-bg);
+}
+.fp-btn-danger { background: var(--fp-red); color: var(--fp-white); }
+.fp-btn-danger:hover:not(:disabled) { background: #B91C1C; }
+.fp-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+/* ---- Inputs ---- */
+.fp-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.fp-field label { font-size: 13px; font-weight: 600; color: var(--fp-carbon); }
+.fp-field input,
+.fp-field select,
+.fp-field textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--fp-carbon);
+  padding: 11px 14px;
+  border-radius: var(--fp-radius-ctrl);
+  border: 1.5px solid var(--fp-gray-border);
+  background: var(--fp-white);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fp-field input::placeholder, .fp-field textarea::placeholder { color: var(--fp-gray-soft); }
+.fp-field input:hover, .fp-field select:hover, .fp-field textarea:hover { border-color: var(--fp-gray-soft); }
+.fp-field input:focus,
+.fp-field select:focus,
+.fp-field textarea:focus {
+  border-color: var(--fp-orange);
+  box-shadow: var(--fp-ring);
+}
+.fp-field textarea { resize: vertical; }
+
+/* ---- Badges ---- */
+.fp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: var(--fp-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fp-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.fp-badge-orange { background: var(--fp-orange-light); color: var(--fp-orange-dark); }
+.fp-badge-blue   { background: var(--fp-blue-light);   color: var(--fp-blue-dark); }
+.fp-badge-green  { background: var(--fp-green-light);  color: var(--fp-on-green); }
+.fp-badge-red    { background: var(--fp-red-light);    color: var(--fp-on-red); }
+
+/* Avatar de iniciales, se usa en tablas y encabezados */
+.fp-avatar {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  background: var(--fp-gray-bg);
+  color: var(--fp-gray-mid);
+  border: 1px solid var(--fp-gray-border);
+  flex: none;
+}
+
+/* ---- Grid helpers ---- */
+.fp-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.fp-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.fp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+@media (max-width: 1100px) {
+  .fp-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .fp-grid-3 { grid-template-columns: 1fr; }
+  .fp-grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  :root { --fp-sidebar-w: 72px; }
+}
+@media (max-width: 720px) {
+  .fp-grid-4 { grid-template-columns: 1fr; }
+  .fp-main { padding: 24px 18px 40px; }
+}
+
+/* ---- Tablas ---- */
+table.fp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+table.fp-table th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--fp-gray-mid);
+  font-weight: 600;
+  padding: 0 14px 11px;
+  border-bottom: 1px solid var(--fp-gray-border);
+  white-space: nowrap;
+}
+table.fp-table td {
+  padding: 13px 14px;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--fp-line-soft);
+  vertical-align: middle;
+}
+table.fp-table tbody tr:last-child td { border-bottom: none; }
+table.fp-table tbody tr { transition: background 0.12s ease; }
+table.fp-table tbody tr:hover td { background: var(--fp-hover); }
+table.fp-table th:first-child, table.fp-table td:first-child { padding-left: 4px; }
+table.fp-table th:last-child, table.fp-table td:last-child { padding-right: 4px; }
+
+/* Celda con avatar + nombre */
+.fp-person { display: flex; align-items: center; gap: 10px; }
+.fp-person span { font-weight: 500; }
+
+/* Fila de acceso denegado: riel rojo a la izquierda */
+tr.fp-row-denied td:first-child {
+  box-shadow: inset 2px 0 0 var(--fp-red);
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+/* ---- Mensajes de estado ---- */
+.fp-error, .fp-ok {
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: var(--fp-radius-ctrl);
+  margin: 0 0 16px;
+  border: 1px solid transparent;
+}
+.fp-error {
+  background: var(--fp-red-light);
+  color: var(--fp-on-red);
+  border-color: var(--fp-red);
+}
+.fp-ok {
+  background: var(--fp-green-light);
+  color: var(--fp-on-green);
+  border-color: var(--fp-green);
+}
+.fp-loading, .fp-empty {
+  color: var(--fp-gray-mid);
+  font-size: 13.5px;
+  padding: 18px 0;
+  margin: 0;
+}
+.fp-empty { text-align: center; padding: 28px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+
+/* ==========================================================================
+   Tema oscuro. Se activa poniendo data-tema="oscuro" en <html>.
+   ========================================================================== */
+:root[data-tema='oscuro'] {
+  --fp-carbon: #F3F3F6;
+  --fp-white: #141418;
+  --fp-gray-bg: #0B0B0E;
+  --fp-gray-mid: #9A9AA6;
+  --fp-gray-soft: #6E6E7A;
+  --fp-gray-border: #26262E;
+  --fp-ink: #070709;
+  --fp-ink-soft: #1B1B21;
+
+  --fp-line-soft: #212128;
+  --fp-hover: #1A1A20;
+
+  /* Los fondos tenues dejan de ser crema y pasan a ser el acento translucido */
+  --fp-orange-light: rgba(234, 88, 12, 0.16);
+  --fp-blue-light:   rgba(37, 99, 235, 0.18);
+  --fp-green-light:  rgba(22, 163, 74, 0.18);
+  --fp-red-light:    rgba(220, 38, 38, 0.16);
+
+  --fp-on-red: #FCA5A5;
+  --fp-on-green: #86EFAC;
+  --fp-on-orange: #FDBA74;
+  --fp-on-yellow: #FCD34D;
+  --fp-warn-bg: rgba(217, 119, 6, 0.14);
+  --fp-warn-border: rgba(217, 119, 6, 0.38);
+  --fp-warn-ink: #FCD34D;
+  --fp-soft-orange-bg: rgba(234, 88, 12, 0.10);
+  --fp-soft-orange-border: rgba(234, 88, 12, 0.32);
+  --fp-soft-orange-ink: #FDBA74;
+
+  --fp-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --fp-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-tema='oscuro'] input,
+:root[data-tema='oscuro'] select,
+:root[data-tema='oscuro'] textarea { color-scheme: dark; }
+
+/* ==========================================================================
+   Color de acento. Se elige en Configuracion y se guarda por gimnasio.
+   ========================================================================== */
+:root[data-acento='azul'] {
+  --fp-orange: #2563EB;
+  --fp-orange-dark: #1D4ED8;
+  --fp-orange-light: #DBEAFE;
+  --fp-ring: 0 0 0 3px rgba(37, 99, 235, 0.22);
+}
+:root[data-acento='verde'] {
+  --fp-orange: #16A34A;
+  --fp-orange-dark: #15803D;
+  --fp-orange-light: #DCFCE7;
+  --fp-ring: 0 0 0 3px rgba(22, 163, 74, 0.22);
+}
+:root[data-acento='morado'] {
+  --fp-orange: #7C3AED;
+  --fp-orange-dark: #6D28D9;
+  --fp-orange-light: #EDE9FE;
+  --fp-ring: 0 0 0 3px rgba(124, 58, 237, 0.22);
+}
+:root[data-tema='oscuro'][data-acento='azul']   { --fp-orange-light: rgba(37, 99, 235, 0.18); }
+:root[data-tema='oscuro'][data-acento='verde']  { --fp-orange-light: rgba(22, 163, 74, 0.18); }
+:root[data-tema='oscuro'][data-acento='morado'] { --fp-orange-light: rgba(124, 58, 237, 0.20); }

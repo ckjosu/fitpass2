@@ -1,0 +1,79 @@
+# =====================================================================
+# Gymred — ambiente de PRODUCCION
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+#   Angular     http://localhost:4200  (compilado y servido por nginx)
+#   API         http://localhost:8000/api
+#   phpMyAdmin  http://localhost:8080
+#   MySQL       interno, sin puerto publicado
+# =====================================================================
+services:
+  mysql:
+    build:
+      context: ./docker/prod/mysql
+    container_name: gymred-db-prod
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: gymred
+      MYSQL_USER: gymred
+      MYSQL_PASSWORD: gymred123
+    # En produccion la base no se expone al exterior: solo la ve la API.
+    expose:
+      - "3306"
+    volumes:
+      - gymred_data_prod:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ugymred", "-pgymred123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./app-api
+      dockerfile: ../docker/prod/api/Dockerfile
+    container_name: gymred-api-prod
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: gymred
+      DB_PASSWORD: gymred123
+      DB_NAME: gymred
+      JWT_SECRET: cambiar-este-secreto-en-produccion
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - gymred_uploads_prod:/app/uploads
+
+  angular:
+    build:
+      context: .
+      dockerfile: docker/prod/angular/Dockerfile
+    container_name: gymred-web-prod
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: gymred-phpmyadmin-prod
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+
+volumes:
+  gymred_data_prod:
+  gymred_uploads_prod:

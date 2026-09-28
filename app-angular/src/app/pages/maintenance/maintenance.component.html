@@ -1,0 +1,93 @@
+<div>
+  <h1 class="fp-heading">Mantenimiento del gimnasio</h1>
+  <p class="subtitle">Edita la información pública de tu gimnasio</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando información...</p>
+
+<ng-container *ngIf="!cargando">
+  <form class="fp-card" [formGroup]="generalForm">
+    <h3>Información general</h3>
+    <p class="fp-card-sub">Datos visibles para los usuarios de la app</p>
+
+    <div class="fp-grid-2">
+      <div class="fp-field">
+        <label for="nombre">Nombre del gimnasio</label>
+        <input id="nombre" type="text" formControlName="nombre" />
+      </div>
+      <div class="fp-field">
+        <label for="categoria">Categoría</label>
+        <select id="categoria" formControlName="categoria">
+          <option *ngFor="let c of categorias" [value]="c">{{ c | titlecase }}</option>
+        </select>
+      </div>
+      <div class="fp-field">
+        <label for="telefono">Teléfono de contacto</label>
+        <input id="telefono" type="tel" formControlName="telefono" />
+      </div>
+      <div class="fp-field">
+        <label for="calle">Calle y número</label>
+        <input id="calle" type="text" formControlName="calle" />
+      </div>
+      <div class="fp-field">
+        <label for="colonia">Colonia</label>
+        <input id="colonia" type="text" formControlName="colonia" />
+      </div>
+      <div class="fp-field">
+        <label for="ciudad">Ciudad</label>
+        <input id="ciudad" type="text" formControlName="ciudad" />
+      </div>
+      <div class="fp-field">
+        <label for="codigoPostal">Código postal</label>
+        <input id="codigoPostal" type="text" formControlName="codigoPostal" />
+      </div>
+      <div class="fp-field">
+        <label for="descripcion">Descripción</label>
+        <input id="descripcion" type="text" formControlName="descripcion" />
+      </div>
+    </div>
+  </form>
+
+  <div class="fp-card">
+    <h3>Horarios de atención</h3>
+    <p class="fp-card-sub">Define cuándo está abierto tu gimnasio</p>
+
+    <form [formGroup]="scheduleForm">
+      <div formArrayName="days">
+        <div class="schedule-row" *ngFor="let dayGroup of scheduleDays.controls; let i = index" [formGroupName]="i">
+          <span class="day-name">{{ days[i] }}</span>
+          <input type="time" formControlName="open" />
+          <span>a</span>
+          <input type="time" formControlName="close" />
+          <label class="closed-toggle">
+            <input type="checkbox" formControlName="closed" /> Cerrado
+          </label>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="fp-card">
+    <h3>Fotos del gimnasio</h3>
+    <p class="fp-card-sub">Se muestran en la app a los usuarios</p>
+
+    <div class="photo-grid">
+      <div class="photo-thumb" *ngFor="let foto of fotos">
+        <span>{{ nombreArchivo(foto.url) }}</span>
+        <button type="button" class="remove-btn" (click)="removePhoto(foto)">×</button>
+      </div>
+      <label class="add-photo">
+        + Agregar foto
+        <input type="file" accept="image/*" (change)="subirFoto($event)" hidden />
+      </label>
+    </div>
+  </div>
+
+  <div class="save-row">
+    <button class="fp-btn fp-btn-primary" type="button" (click)="onSave()" [disabled]="guardando">
+      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+    </button>
+  </div>
+</ng-container>

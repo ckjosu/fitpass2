@@ -1,7 +1,4 @@
 node_modules/
 dist/
 .angular/
-.env
-app-api/uploads/
-.DS_Store
 *.log

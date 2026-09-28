@@ -1,0 +1,128 @@
+<div class="cabecera">
+  <div>
+    <h1 class="fp-heading">Reportes de mantenimiento</h1>
+    <p class="subtitle">Registra las averías de tu equipo y dales seguimiento</p>
+  </div>
+  <button class="fp-btn fp-btn-primary" (click)="abrirForm()" *ngIf="!mostrandoForm">
+    Levantar reporte
+  </button>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+
+<form class="fp-card" [formGroup]="form" (ngSubmit)="guardar()" *ngIf="mostrandoForm">
+  <h3>Nuevo reporte</h3>
+  <p class="fp-card-sub">Describe qué equipo falló y qué le pasa</p>
+
+  <div class="fp-grid-2">
+    <div class="fp-field">
+      <label for="equipo">Equipo o zona</label>
+      <input id="equipo" type="text" formControlName="equipo" placeholder="Cinta de correr #2" />
+    </div>
+    <div class="fp-field">
+      <label for="prioridad">Prioridad</label>
+      <select id="prioridad" formControlName="prioridad">
+        <option value="alta">Alta</option>
+        <option value="media">Media</option>
+        <option value="baja">Baja</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="fp-field">
+    <label for="titulo">¿Qué le pasa?</label>
+    <input id="titulo" type="text" formControlName="titulo" placeholder="La banda se traba al subir la velocidad" />
+  </div>
+
+  <div class="fp-field">
+    <label for="descripcion">Detalle (opcional)</label>
+    <textarea id="descripcion" rows="3" formControlName="descripcion"></textarea>
+  </div>
+
+  <div class="acciones">
+    <button type="button" class="fp-btn fp-btn-secondary" (click)="cerrarForm()">Cancelar</button>
+    <button type="submit" class="fp-btn fp-btn-primary" [disabled]="form.invalid">Guardar reporte</button>
+  </div>
+</form>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-grid-3">
+    <div class="fp-card conteo" data-tono="pendiente">
+      <span class="cifra">{{ d.resumen.pendientes }}</span>
+      <div><p class="k">Pendientes</p><p class="n">sin atender</p></div>
+    </div>
+    <div class="fp-card conteo" data-tono="progreso">
+      <span class="cifra">{{ d.resumen.enProgreso }}</span>
+      <div><p class="k">En progreso</p><p class="n">ya se están atendiendo</p></div>
+    </div>
+    <div class="fp-card conteo" data-tono="resuelto">
+      <span class="cifra">{{ d.resumen.resueltos }}</span>
+      <div><p class="k">Resueltos</p><p class="n">historial</p></div>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <div class="filtros">
+      <div class="filtro">
+        <label for="fs">Situación</label>
+        <select id="fs" [(ngModel)]="filtroSituacion" [ngModelOptions]="{standalone:true}" (ngModelChange)="cargar()">
+          <option value="">Todas</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="en_progreso">En progreso</option>
+          <option value="resuelto">Resueltos</option>
+        </select>
+      </div>
+      <div class="filtro">
+        <label for="fp">Prioridad</label>
+        <select id="fp" [(ngModel)]="filtroPrioridad" [ngModelOptions]="{standalone:true}" (ngModelChange)="cargar()">
+          <option value="">Todas</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="fp-loading" *ngIf="cargando">Cargando reportes...</p>
+    <p class="fp-empty" *ngIf="!cargando && d.incidencias.length === 0">
+      No hay reportes que coincidan con el filtro.
+    </p>
+
+    <div class="reporte" *ngFor="let i of d.incidencias" [attr.data-prioridad]="i.prioridad">
+      <div class="info">
+        <div class="linea">
+          <span class="equipo">{{ i.equipo }}</span>
+          <span class="fp-badge"
+                [class.fp-badge-red]="i.prioridad === 'alta'"
+                [class.fp-badge-orange]="i.prioridad === 'media'"
+                [class.fp-badge-blue]="i.prioridad === 'baja'">
+            Prioridad {{ i.prioridad }}
+          </span>
+          <span class="fp-badge"
+                [class.fp-badge-orange]="i.situacion === 'pendiente'"
+                [class.fp-badge-blue]="i.situacion === 'en_progreso'"
+                [class.fp-badge-green]="i.situacion === 'resuelto'">
+            {{ etiquetaSituacion(i.situacion) }}
+          </span>
+        </div>
+        <p class="titulo">{{ i.titulo }}</p>
+        <p class="detalle" *ngIf="i.descripcion">{{ i.descripcion }}</p>
+        <p class="fecha">
+          Reportado el {{ i.creadoEn | date: 'd \'de\' MMMM' }}
+          <span *ngIf="i.resueltoEn"> · resuelto el {{ i.resueltoEn | date: 'd \'de\' MMMM' }}</span>
+        </p>
+      </div>
+
+      <div class="acciones-fila">
+        <button class="fp-btn fp-btn-secondary" *ngIf="i.situacion === 'pendiente'"
+                (click)="cambiarSituacion(i, 'en_progreso')">Atender</button>
+        <button class="fp-btn fp-btn-primary" *ngIf="i.situacion !== 'resuelto'"
+                (click)="cambiarSituacion(i, 'resuelto')">Marcar resuelto</button>
+        <button class="fp-btn fp-btn-secondary" *ngIf="i.situacion === 'resuelto'"
+                (click)="cambiarSituacion(i, 'pendiente')">Reabrir</button>
+        <button class="fp-btn fp-btn-secondary borrar" (click)="borrar(i)">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</ng-container>

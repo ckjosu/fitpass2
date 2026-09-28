@@ -1,0 +1,124 @@
+.login-screen {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100vh;
+}
+
+/* ---- Lado de marca ---- */
+.brand {
+  position: relative;
+  background: var(--fp-ink);
+  color: #fff;
+  padding: 56px 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+/* Luz naranja arriba y azul abajo, sin llegar a wash de gradiente */
+.brand::before,
+.brand::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+.brand::before {
+  width: 420px; height: 420px;
+  top: -150px; right: -120px;
+  background: rgba(234, 88, 12, 0.32);
+}
+.brand::after {
+  width: 360px; height: 360px;
+  bottom: -160px; left: -100px;
+  background: rgba(37, 99, 235, 0.22);
+}
+.brand > * { position: relative; z-index: 1; }
+
+.logo-row { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--fp-orange);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.logo-icon svg { width: 22px; height: 22px; }
+.wordmark {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+
+.brand-copy { max-width: 22ch; }
+.brand-copy h1 {
+  font-size: 46px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  margin: 0 0 18px;
+}
+.brand-copy p {
+  color: #A8A8B2;
+  font-size: 15.5px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 44ch;
+}
+
+.brand-points { list-style: none; padding: 0; margin: 0; display: grid; gap: 11px; }
+.brand-points li {
+  position: relative;
+  padding-left: 26px;
+  color: #C4C4CC;
+  font-size: 13.5px;
+}
+.brand-points li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 7px;
+  width: 8px; height: 8px;
+  border-radius: 3px;
+  background: var(--fp-orange);
+}
+
+/* ---- Lado del formulario ---- */
+.form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  background: var(--fp-gray-bg);
+}
+.form-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--fp-white);
+  border: 1px solid var(--fp-gray-border);
+  border-radius: var(--fp-radius-lg);
+  padding: 36px 34px;
+  box-shadow: var(--fp-shadow-lg);
+}
+.form-card h2 { font-size: 24px; }
+.form-card .sub { color: var(--fp-gray-mid); font-size: 13.5px; margin: 6px 0 26px; }
+
+.fp-btn.ancho { width: 100%; justify-content: center; padding: 12px 18px; font-size: 14.5px; }
+
+.signup {
+  text-align: center;
+  font-size: 13px;
+  color: var(--fp-gray-mid);
+  margin: 22px 0 0;
+}
+.signup a { color: var(--fp-orange-dark); font-weight: 600; text-decoration: none; }
+.signup a:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .login-screen { grid-template-columns: 1fr; }
+  .brand { padding: 36px 28px; gap: 28px; }
+  .brand-copy h1 { font-size: 32px; }
+  .brand-points { display: none; }
+  .form-side { padding: 32px 20px 48px; }
+}

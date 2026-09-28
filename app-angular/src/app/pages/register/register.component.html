@@ -1,0 +1,51 @@
+<div class="register-screen">
+  <form class="form-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <h2>Registra tu gimnasio</h2>
+    <p class="sub">Creamos tu cuenta y la de tu gimnasio en un solo paso</p>
+
+    <div class="campos">
+      <div class="fp-field ancho-total">
+        <label for="gymName">Nombre del gimnasio</label>
+        <input id="gymName" type="text" formControlName="gymName" placeholder="Iron House Centro" />
+      </div>
+
+      <div class="fp-field">
+        <label for="ownerName">Nombre del propietario</label>
+        <input id="ownerName" type="text" formControlName="ownerName" />
+      </div>
+
+      <div class="fp-field">
+        <label for="phone">Teléfono</label>
+        <input id="phone" type="tel" formControlName="phone" placeholder="999 123 4567" />
+      </div>
+
+      <div class="fp-field ancho-total">
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" formControlName="email" placeholder="tu@gimnasio.com" />
+      </div>
+
+      <div class="fp-field">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
+      </div>
+
+      <div class="fp-field">
+        <label for="confirmPassword">Confirmar contraseña</label>
+        <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+      </div>
+
+      <div class="fp-field ancho-total">
+        <label for="address">Dirección</label>
+        <input id="address" type="text" formControlName="address" placeholder="Calle 59 #412, Centro" />
+      </div>
+    </div>
+
+    <p class="fp-error" *ngIf="error">{{ error }}</p>
+
+    <button class="fp-btn fp-btn-primary" type="submit" [disabled]="form.invalid || cargando">
+      {{ cargando ? 'Creando...' : 'Crear cuenta' }}
+    </button>
+
+    <p class="back"><a routerLink="/login">Volver al inicio de sesión</a></p>
+  </form>
+</div>

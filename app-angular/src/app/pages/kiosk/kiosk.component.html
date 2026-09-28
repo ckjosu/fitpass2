@@ -1,0 +1,64 @@
+<ng-container *ngIf="!pantallaCompleta">
+  <div>
+    <h1 class="fp-heading">Pantalla de acceso</h1>
+    <p class="subtitle">Este es el código que tus socios escanean para entrar</p>
+  </div>
+
+  <p class="fp-error" *ngIf="error">{{ error }}</p>
+  <p class="fp-loading" *ngIf="cargando">Cargando pantallas...</p>
+
+  <p class="fp-empty" *ngIf="!cargando && pantallas.length === 0">
+    Este gimnasio no tiene ninguna pantalla de acceso dada de alta.
+  </p>
+
+  <div class="fp-card" *ngIf="pantallas.length > 0">
+    <div class="ajustes">
+      <div class="campo" *ngIf="pantallas.length > 1">
+        <label for="serie">Pantalla</label>
+        <select id="serie" [(ngModel)]="serie" (ngModelChange)="cambiarPantalla()">
+          <option *ngFor="let p of pantallas" [value]="p.numeroSerie">
+            {{ p.numeroSerie }} — {{ p.ubicacion || 'sin ubicación' }}
+          </option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="dur">El código cambia cada</label>
+        <select id="dur" [(ngModel)]="duracion" (ngModelChange)="renovar()">
+          <option [ngValue]="15">15 segundos</option>
+          <option [ngValue]="30">30 segundos</option>
+          <option [ngValue]="60">1 minuto</option>
+          <option [ngValue]="120">2 minutos</option>
+        </select>
+      </div>
+      <button class="fp-btn fp-btn-secondary" (click)="renovar()">Generar otro ahora</button>
+      <button class="fp-btn fp-btn-primary" (click)="alternarPantallaCompleta()">
+        Modo pantalla completa
+      </button>
+    </div>
+
+    <div class="qr-zona" *ngIf="actual as a">
+      <canvas #lienzo class="lienzo"></canvas>
+      <div class="datos">
+        <p class="rotulo">Escanea para entrar</p>
+        <p class="donde">{{ a.pantalla.ubicacion || a.pantalla.numeroSerie }}</p>
+        <p class="cuenta">
+          Se renueva en <b>{{ segundosRestantes }}</b> {{ segundosRestantes === 1 ? 'segundo' : 'segundos' }}
+        </p>
+        <p class="codigo">{{ a.codigo }}</p>
+        <p class="nota">
+          El código vive solo unos segundos. Si alguien le toma foto a la pantalla,
+          esa foto deja de servir casi enseguida.
+        </p>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Lo que se proyecta en la tablet o el monitor de la entrada -->
+<div class="completa" *ngIf="pantallaCompleta">
+  <button class="salir" (click)="alternarPantallaCompleta()">Salir</button>
+  <p class="marca">Gymred</p>
+  <div class="caja"><canvas #lienzo></canvas></div>
+  <p class="instruccion">Escanea este código con tu app para entrar</p>
+  <p class="temporizador" *ngIf="actual">Se renueva en {{ segundosRestantes }} s</p>
+</div>

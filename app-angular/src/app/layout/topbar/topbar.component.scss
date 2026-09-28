@@ -1,0 +1,70 @@
+.topbar {
+  height: 64px;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--fp-gray-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 36px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ---- Selector de sucursal ---- */
+.gym-picker { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.gym-picker label { font-size: 12.5px; color: var(--fp-gray-mid); font-weight: 600; }
+.gym-picker select {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--fp-carbon);
+  padding: 8px 12px;
+  border-radius: var(--fp-radius-ctrl);
+  border: 1.5px solid var(--fp-gray-border);
+  background: var(--fp-white);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.gym-picker select:hover { border-color: var(--fp-gray-soft); }
+.gym-picker select:focus { border-color: var(--fp-orange); box-shadow: var(--fp-ring); }
+
+/* ---- Usuario ---- */
+.owner { display: flex; align-items: center; gap: 11px; margin-left: auto; }
+.owner-avatar {
+  width: 36px; height: 36px;
+  border-radius: 11px;
+  background: linear-gradient(140deg, var(--fp-blue), var(--fp-blue-dark));
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.owner-name { font-size: 13.5px; font-weight: 600; margin: 0; line-height: 1.3; }
+.owner-role { font-size: 11.5px; color: var(--fp-gray-mid); margin: 0; }
+
+.logout {
+  margin-left: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fp-gray-mid);
+  background: none;
+  border: 1.5px solid var(--fp-gray-border);
+  border-radius: var(--fp-radius-ctrl);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.logout:hover { color: var(--fp-red); border-color: var(--fp-red); background: var(--fp-red-light); }
+
+@media (max-width: 720px) {
+  .topbar { padding: 0 18px; }
+  .owner > div:not(.owner-avatar) { display: none; }
+}

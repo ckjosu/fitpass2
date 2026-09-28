@@ -1,0 +1,100 @@
+<div>
+  <h1 class="fp-heading">Configuración</h1>
+  <p class="subtitle">Preferencias del panel y del lector de QR</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando configuración...</p>
+
+<form [formGroup]="form" *ngIf="!cargando">
+  <div class="fp-card">
+    <h3>Apariencia</h3>
+    <p class="fp-card-sub">Cómo se ve tu panel</p>
+
+    <div class="opcion">
+      <div>
+        <p class="t">Tema</p>
+        <p class="d">Claro para el día, oscuro para la noche</p>
+      </div>
+      <select formControlName="tema" (change)="cambiarTema($any($event.target).value)">
+        <option value="claro">Claro</option>
+        <option value="oscuro">Oscuro</option>
+      </select>
+    </div>
+
+    <div class="opcion">
+      <div>
+        <p class="t">Color de acento</p>
+        <p class="d">Se usa en botones y elementos activos</p>
+      </div>
+      <div class="colores">
+        <button type="button" *ngFor="let a of acentos"
+                class="muestra"
+                [class.elegido]="form.value.colorAcento === a.valor"
+                [style.background]="a.color"
+                [title]="a.etiqueta"
+                (click)="elegirAcento(a.valor)"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Lector y accesos</h3>
+    <p class="fp-card-sub">Cómo se valida el código QR de tus socios</p>
+
+    <div class="opcion">
+      <div>
+        <p class="t">Modo de validación</p>
+        <p class="d">Con verificación en línea el lector consulta la suscripción en el momento</p>
+      </div>
+      <select formControlName="modoValidacion">
+        <option value="en_linea">QR con verificación en tiempo real</option>
+        <option value="tolerancia_sin_conexion">QR con tolerancia sin conexión</option>
+      </select>
+    </div>
+
+    <div class="opcion">
+      <div>
+        <p class="t">Vigencia del código QR</p>
+        <p class="d">Cuánto dura el código antes de que la app genere otro</p>
+      </div>
+      <select formControlName="toleranciaSegundos">
+        <option [ngValue]="60">1 minuto</option>
+        <option [ngValue]="300">5 minutos</option>
+        <option [ngValue]="600">10 minutos</option>
+        <option [ngValue]="1800">30 minutos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Avisos</h3>
+    <p class="fp-card-sub">Qué te notificamos por correo</p>
+
+    <label class="check">
+      <input type="checkbox" formControlName="avisarPorCorreo" />
+      <span><b>Recibir avisos por correo</b><i>Si lo apagas, no te llega ninguno de los de abajo</i></span>
+    </label>
+    <label class="check">
+      <input type="checkbox" formControlName="avisarAccesosDenegados" />
+      <span><b>Accesos denegados</b><i>Cuando a un socio se le niega la entrada</i></span>
+    </label>
+    <label class="check">
+      <input type="checkbox" formControlName="avisarIncidencias" />
+      <span><b>Reportes de mantenimiento</b><i>Cuando se levanta un reporte de prioridad alta</i></span>
+    </label>
+  </div>
+
+  <div class="fp-card peligro">
+    <h3>Dar de baja el gimnasio</h3>
+    <p class="fp-card-sub">Se desactiva el lector y tus socios dejan de entrar con Gymred</p>
+    <a class="fp-btn fp-btn-secondary" routerLink="/cancel">Ir a la baja de la plataforma</a>
+  </div>
+
+  <div class="guardar">
+    <button type="button" class="fp-btn fp-btn-primary" (click)="guardar()" [disabled]="guardando">
+      {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
+    </button>
+  </div>
+</form>

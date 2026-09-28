@@ -1,0 +1,51 @@
+<div class="login-screen">
+  <section class="brand">
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8" />
+        </svg>
+      </div>
+      <span class="wordmark">Gymred</span>
+    </div>
+
+    <div class="brand-copy">
+      <h1>Tu gimnasio, bajo control.</h1>
+      <p>Mira quién entra en tiempo real, ajusta tus precios y revisa cuánto te toca cobrar este mes.</p>
+    </div>
+
+    <ul class="brand-points">
+      <li>Cada lectura del lector queda registrada al instante</li>
+      <li>Tus precios los defines tú, no la plataforma</li>
+      <li>Un solo panel para todas tus sucursales</li>
+    </ul>
+  </section>
+
+  <section class="form-side">
+    <form class="form-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <h2>Entra a tu panel</h2>
+      <p class="sub">Usa el correo con el que registraste tu gimnasio</p>
+
+      <div class="fp-field">
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" formControlName="email" placeholder="tu@gimnasio.com" />
+      </div>
+
+      <div class="fp-field">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" formControlName="password" placeholder="••••••••" />
+      </div>
+
+      <p class="fp-error" *ngIf="error">{{ error }}</p>
+
+      <button class="fp-btn fp-btn-primary ancho" type="submit" [disabled]="form.invalid || cargando">
+        {{ cargando ? 'Entrando...' : 'Iniciar sesión' }}
+      </button>
+
+      <p class="signup">
+        ¿Tu gimnasio aún no está afiliado?
+        <a routerLink="/register">Solicita tu registro</a>
+      </p>
+    </form>
+  </section>
+</div>

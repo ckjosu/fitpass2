@@ -1,0 +1,93 @@
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--fp-line-soft);
+}
+.schedule-row:last-child { border-bottom: none; }
+.schedule-row .day-name { width: 96px; font-weight: 600; font-size: 13.5px; }
+.schedule-row input[type='time'] {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  border: 1.5px solid var(--fp-gray-border);
+  border-radius: var(--fp-radius-ctrl);
+  padding: 8px 11px;
+  background: var(--fp-white);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.schedule-row input[type='time']:focus { border-color: var(--fp-orange); box-shadow: var(--fp-ring); }
+.schedule-row > span { color: var(--fp-gray-soft); font-size: 13px; }
+
+.closed-toggle {
+  margin-left: auto;
+  font-size: 13.5px;
+  color: var(--fp-gray-mid);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.closed-toggle input { width: 16px; height: 16px; accent-color: var(--fp-orange); cursor: pointer; }
+
+/* ---- Fotos ---- */
+.photo-grid { display: flex; flex-wrap: wrap; gap: 14px; }
+.photo-thumb {
+  position: relative;
+  width: 140px; height: 96px;
+  padding: 10px;
+  background: var(--fp-gray-bg);
+  border: 1px solid var(--fp-gray-border);
+  border-radius: var(--fp-radius);
+  display: flex;
+  align-items: flex-end;
+  font-size: 11.5px;
+  color: var(--fp-gray-mid);
+  word-break: break-all;
+  overflow: hidden;
+}
+.remove-btn {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(20, 20, 22, 0.6);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.remove-btn:hover { background: var(--fp-red); }
+
+label.add-photo {
+  width: 140px; height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1.5px dashed var(--fp-gray-border);
+  border-radius: var(--fp-radius);
+  background: none;
+  color: var(--fp-gray-mid);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+label.add-photo:hover {
+  border-color: var(--fp-orange);
+  color: var(--fp-orange-dark);
+  background: var(--fp-soft-orange-bg);
+}
+
+.save-row {
+  display: flex;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  padding: 14px 0 4px;
+  background: linear-gradient(180deg, rgba(246,246,248,0), var(--fp-gray-bg) 45%);
+}

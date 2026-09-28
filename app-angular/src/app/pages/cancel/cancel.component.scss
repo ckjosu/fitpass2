@@ -1,0 +1,33 @@
+.warning-card {
+  background: var(--fp-soft-orange-bg);
+  border-color: var(--fp-soft-orange-border);
+}
+.warning-card h3 { color: var(--fp-orange-dark); margin-bottom: 12px; }
+.warning-card ul { margin: 0; padding-left: 20px; display: grid; gap: 7px; }
+.warning-card li { font-size: 13.5px; color: var(--fp-on-orange); }
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--fp-line-soft);
+  font-size: 13.5px;
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-row span:first-child { color: var(--fp-gray-mid); }
+.summary-row span:last-child { font-weight: 600; }
+
+.confirm-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--fp-carbon);
+  margin: 6px 0 22px;
+  cursor: pointer;
+}
+.confirm-check input { width: 17px; height: 17px; accent-color: var(--fp-red); cursor: pointer; }
+
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }

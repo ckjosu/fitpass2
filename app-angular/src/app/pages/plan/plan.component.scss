@@ -1,0 +1,60 @@
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s ease;
+}
+.plan-card.current {
+  border-color: var(--fp-orange);
+  box-shadow: 0 0 0 1px var(--fp-orange), var(--fp-shadow);
+}
+
+.plan-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.plan-head h3 { font-size: 17px; }
+
+.plan-price {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.plan-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 9px;
+  flex: 1;
+}
+.plan-card li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  color: var(--fp-gray-mid);
+}
+.plan-card li::before {
+  content: '';
+  position: absolute;
+  left: 2px; top: 7px;
+  width: 7px; height: 7px;
+  border-radius: 2px;
+  background: var(--fp-orange-light);
+  border: 1.5px solid var(--fp-orange);
+}
+
+.plan-card .fp-btn { align-self: flex-start; margin-top: 4px; }
+
+.billing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--fp-line-soft);
+  font-size: 13.5px;
+}
+.billing-row:last-child { border-bottom: none; }
+.billing-row span:first-child { color: var(--fp-gray-mid); }
+.billing-row span:last-child { font-weight: 600; }

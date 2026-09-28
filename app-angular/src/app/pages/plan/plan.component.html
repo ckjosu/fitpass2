@@ -1,0 +1,71 @@
+<div>
+  <h1 class="fp-heading">Plan Gymred</h1>
+  <p class="subtitle">Tu contrato con la plataforma</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando tu contrato...</p>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-ok" *ngIf="d.solicitudPendiente">
+    Tienes una solicitud de cambio al plan {{ d.solicitudPendiente.tipoSolicitado | titlecase }} en revisión.
+  </div>
+
+  <div class="fp-grid-2">
+    <div class="fp-card plan-card" *ngFor="let p of d.planes" [class.current]="p.actual">
+      <div class="plan-head">
+        <h3>{{ p.nombre }}</h3>
+        <span class="fp-badge fp-badge-orange" *ngIf="p.actual">Plan actual</span>
+      </div>
+      <p class="plan-price">{{ p.precio }}</p>
+      <ul>
+        <li *ngFor="let f of p.beneficios">{{ f }}</li>
+      </ul>
+      <button
+        class="fp-btn fp-btn-secondary"
+        *ngIf="!p.actual"
+        [disabled]="!!d.solicitudPendiente"
+        (click)="requestChange(p)"
+      >
+        Solicitar cambio
+      </button>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Facturación</h3>
+    <div class="billing-row"><span>Próximo vencimiento</span><span>{{ d.facturacion.proximoVencimiento | date: 'd \'de\' MMMM \'de\' y' }}</span></div>
+    <div class="billing-row"><span>Ciclo de facturación</span><span>{{ d.facturacion.ciclo }}</span></div>
+    <div class="billing-row"><span>Comisión de la plataforma</span><span>{{ d.facturacion.comision }}</span></div>
+    <div class="billing-row"><span>Tarifa que Gymred te paga por visita</span><span>${{ d.facturacion.tarifaPorVisita }}</span></div>
+    <div class="billing-row" *ngIf="d.contrato.cuotaFijaMensual > 0">
+      <span>Cuota fija mensual</span><span>${{ d.contrato.cuotaFijaMensual }}</span>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Liquidaciones</h3>
+    <p class="fp-card-sub">Corte mensual: visitas × tarifa − comisión</p>
+
+    <p class="fp-empty" *ngIf="d.liquidaciones.length === 0">Todavía no hay liquidaciones generadas.</p>
+
+    <table class="fp-table" *ngIf="d.liquidaciones.length > 0">
+      <thead><tr><th>Periodo</th><th>Visitas</th><th>Bruto</th><th>Comisión</th><th>Neto</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let l of d.liquidaciones">
+          <td>{{ nombreMes(l.mes) }} {{ l.anio }}</td>
+          <td>{{ l.visitas }}</td>
+          <td>${{ l.montoBruto }}</td>
+          <td>${{ l.comision }}</td>
+          <td>${{ l.montoNeto }}</td>
+          <td>
+            <span class="fp-badge" [class.fp-badge-green]="l.situacion === 'pagada'" [class.fp-badge-orange]="l.situacion !== 'pagada'">
+              {{ l.situacion | titlecase }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>

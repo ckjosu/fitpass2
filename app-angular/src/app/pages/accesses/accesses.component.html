@@ -1,0 +1,69 @@
+<div>
+  <h1 class="fp-heading">Historial de accesos</h1>
+  <p class="subtitle">Cada código QR leído en la entrada queda aquí, permitido o denegado</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+
+<div class="fp-card">
+  <div class="filter-row">
+    <div class="filtro">
+      <label for="desde">Desde</label>
+      <input id="desde" type="date" [(ngModel)]="desde" />
+    </div>
+    <div class="filtro">
+      <label for="hasta">Hasta</label>
+      <input id="hasta" type="date" [(ngModel)]="hasta" />
+    </div>
+    <div class="filtro">
+      <label for="resultado">Resultado</label>
+      <select id="resultado" [(ngModel)]="resultado">
+        <option value="">Todos</option>
+        <option value="permitido">Permitidos</option>
+        <option value="denegado">Denegados</option>
+      </select>
+    </div>
+    <div class="filtro crecer">
+      <label for="buscar">Buscar</label>
+      <input id="buscar" type="text" placeholder="Nombre del socio o código QR" [(ngModel)]="buscar" />
+    </div>
+    <button class="fp-btn fp-btn-primary" (click)="filtrar()">Filtrar</button>
+    <button class="fp-btn fp-btn-secondary" (click)="limpiar()">Limpiar</button>
+  </div>
+
+  <p class="fp-loading" *ngIf="cargando">Cargando accesos...</p>
+  <p class="fp-empty" *ngIf="!cargando && filas.length === 0">
+    No hay accesos que coincidan con el filtro.
+  </p>
+
+  <table class="fp-table" *ngIf="!cargando && filas.length > 0">
+    <thead>
+      <tr><th>Miembro</th><th>Fecha y hora</th><th>Código QR leído</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let a of filas" [class.fp-row-denied]="a.resultado === 'denegado'">
+        <td>
+          <div class="fp-person">
+            <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
+            <span>{{ a.cliente || 'Sin identificar' }}</span>
+          </div>
+        </td>
+        <td>{{ a.registradoEn | date: 'dd/MM/yyyy h:mm a' }}</td>
+        <td class="codigo">{{ a.codigoLeido }}</td>
+        <td>
+          <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
+            {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="paginacion" *ngIf="!cargando && total > 0">
+    <span>{{ total }} accesos · página {{ pagina }} de {{ paginas }}</span>
+    <div>
+      <button class="fp-btn fp-btn-secondary" (click)="irA(pagina - 1)" [disabled]="pagina === 1">Anterior</button>
+      <button class="fp-btn fp-btn-secondary" (click)="irA(pagina + 1)" [disabled]="pagina === paginas">Siguiente</button>
+    </div>
+  </div>
+</div>

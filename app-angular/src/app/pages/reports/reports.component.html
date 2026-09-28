@@ -1,0 +1,74 @@
+<div>
+  <h1 class="fp-heading">Reportes</h1>
+  <p class="subtitle">Desempeño de tu gimnasio a lo largo del tiempo</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-loading" *ngIf="cargando">Calculando reportes...</p>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-grid-2">
+    <div class="fp-card">
+      <h3>Visitas por mes</h3>
+      <p class="fp-card-sub">Últimos 6 meses</p>
+      <p class="fp-empty" *ngIf="visitasPorMes.length === 0">Aún no hay visitas registradas.</p>
+      <div class="bars" *ngIf="visitasPorMes.length > 0">
+        <div class="bar-col" *ngFor="let m of visitasPorMes">
+          <span class="bar-valor">{{ m.valor }}</span>
+          <div class="bar" [style.height.%]="altura(m.valor, maxMes)"></div>
+          <span class="bar-etiqueta">{{ m.etiqueta }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fp-card">
+      <h3>Visitas por día de la semana</h3>
+      <p class="fp-card-sub">Últimos 60 días</p>
+      <p class="fp-empty" *ngIf="visitasPorDia.length === 0">Aún no hay visitas registradas.</p>
+      <div class="bars" *ngIf="visitasPorDia.length > 0">
+        <div class="bar-col" *ngFor="let d2 of visitasPorDia">
+          <span class="bar-valor">{{ d2.valor }}</span>
+          <div class="bar bar-blue" [style.height.%]="altura(d2.valor, maxDia)"></div>
+          <span class="bar-etiqueta">{{ d2.etiqueta }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fp-grid-2">
+    <div class="fp-card">
+      <p class="fp-card-sub">Día de mayor afluencia</p>
+      <p class="kpi">{{ diaTop }}</p>
+    </div>
+    <div class="fp-card">
+      <p class="fp-card-sub">Mes con más visitas</p>
+      <p class="kpi">{{ mesTop }}</p>
+    </div>
+  </div>
+
+  <div class="fp-grid-2">
+    <div class="fp-card">
+      <h3>Socios más frecuentes</h3>
+      <p class="fp-card-sub">Últimos 60 días</p>
+      <p class="fp-empty" *ngIf="d.topClientes.length === 0">Todavía no hay suficientes visitas.</p>
+      <table class="fp-table" *ngIf="d.topClientes.length > 0">
+        <thead><tr><th>Socio</th><th>Visitas</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of d.topClientes"><td>{{ c.cliente }}</td><td>{{ c.visitas }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fp-card">
+      <h3>Motivos de acceso denegado</h3>
+      <p class="fp-card-sub">Últimos 60 días</p>
+      <p class="fp-empty" *ngIf="d.motivosDenegacion.length === 0">No hubo accesos denegados.</p>
+      <table class="fp-table" *ngIf="d.motivosDenegacion.length > 0">
+        <thead><tr><th>Motivo</th><th>Veces</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let m of d.motivosDenegacion"><td>{{ m.motivo }}</td><td>{{ m.veces }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ng-container>

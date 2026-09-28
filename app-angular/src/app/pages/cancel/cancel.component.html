@@ -1,0 +1,66 @@
+<div>
+  <h1 class="fp-heading">Configuración</h1>
+  <p class="subtitle">Dar de baja tu gimnasio de Gymred</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando estado del gimnasio...</p>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-card warning-card">
+    <h3>Esta acción no se puede deshacer</h3>
+    <ul>
+      <li>Se desactivará el lector de acceso de tu gimnasio.</li>
+      <li>Tus socios ya no podrán entrar con su suscripción Gymred.</li>
+      <li>Perderás el acceso a este panel y al historial de accesos e ingresos.</li>
+    </ul>
+  </div>
+
+  <div class="fp-card" *ngIf="d.solicitudBaja">
+    <h3>Ya tienes una solicitud de baja</h3>
+    <div class="summary-row"><span>Motivo</span><span>{{ d.solicitudBaja.motivo }}</span></div>
+    <div class="summary-row"><span>Enviada el</span><span>{{ d.solicitudBaja.creadoEn | date: 'dd/MM/yyyy' }}</span></div>
+    <div class="summary-row"><span>Estado</span><span>{{ d.solicitudBaja.situacion | titlecase }}</span></div>
+    <div class="actions">
+      <button type="button" class="fp-btn fp-btn-secondary" (click)="cancelarBaja()">
+        Cancelar mi solicitud de baja
+      </button>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <h3>Estado actual</h3>
+    <div class="summary-row"><span>Plan contratado</span><span>{{ d.contrato.nombre }}</span></div>
+    <div class="summary-row"><span>Vence el</span><span>{{ d.facturacion.proximoVencimiento | date: 'd \'de\' MMMM \'de\' y' }}</span></div>
+    <div class="summary-row"><span>Socios distintos este mes</span><span>{{ sociosDelMes }}</span></div>
+  </div>
+
+  <form class="fp-card" [formGroup]="form" (ngSubmit)="onCancel()" *ngIf="!d.solicitudBaja">
+    <h3>Motivo de la baja</h3>
+
+    <div class="fp-field">
+      <label for="reason">Selecciona un motivo</label>
+      <select id="reason" formControlName="reason">
+        <option value="" disabled>Selecciona una opción</option>
+        <option *ngFor="let m of motivos" [value]="m.valor">{{ m.etiqueta }}</option>
+      </select>
+    </div>
+
+    <div class="fp-field">
+      <label for="comments">Comentarios (opcional)</label>
+      <textarea id="comments" rows="3" formControlName="comments"></textarea>
+    </div>
+
+    <label class="confirm-check">
+      <input type="checkbox" formControlName="confirmed" />
+      Entiendo que esta acción no se puede deshacer
+    </label>
+
+    <div class="actions">
+      <button type="submit" class="fp-btn fp-btn-danger" [disabled]="form.invalid || enviando">
+        {{ enviando ? 'Enviando...' : 'Dar de baja mi gimnasio' }}
+      </button>
+    </div>
+  </form>
+</ng-container>
