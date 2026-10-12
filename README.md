@@ -19,7 +19,9 @@ gymred/
 │   │   ├── angular/Dockerfile          # Imagen de Angular con ng serve
 │   │   └── mysql/                      # Scripts de inicialización de la BD
 │   │       ├── 01_schema.sql
-│   │       └── 02_seed.sql
+│   │       ├── 02_seed.sql
+│   │       ├── 03_catalogo.sql
+│   │       └── 04_normalizacion.sql
 │   └── prod/
 │       ├── api/Dockerfile              # Imagen compilada de la API
 │       ├── angular/Dockerfile          # Angular compilado servido por nginx
@@ -77,14 +79,17 @@ MySQL solo entiende SQL.
 | 6 | Cambiar un precio y recargar | El precio nuevo persiste y el cambio aparece en el historial |
 | 7 | Apagar y volver a levantar sin `-v` | Los datos siguen ahí (persistencia por volumen) |
 | 8 | Entrar al gimnasio de otra dueña por la API | Responde 403 Forbidden |
-| 9 | Escribir una dirección de una pantalla fuera del sprint | Regresa al Resumen |
+| 9 | Agregar un equipo que ya está en el inventario | Avisa que edite la cantidad |
+| 10 | Escribir "caminadora" cuando ya existe "Caminadora" | Lo rechaza como repetido |
+| 11 | Agregar la amenidad "  sauna  " | La guarda como "Sauna" con su ícono |
+| 12 | Repetir esa amenidad en mayúsculas | Avisa que ya la tiene |
 
 ---
 
 ## 3.1 Alcance del Sprint 1
 
-Para la entrega del Sprint 1 el panel publica solo cuatro pantallas: **Login**,
-**Resumen**, **Datos del gimnasio** e **Inventario**.
+En el Sprint 1 el panel publicaba solo cuatro pantallas. **En el Sprint 2 ya se
+publican todas**, porque `SOLO_SPRINT_1` está en `false`.
 
 El resto del panel (Pantalla de acceso, Accesos, Reportes, Mantenimiento, Planes y
 precios, Plan Gymred, Configuración y Baja) **sigue completo en el proyecto**: sus
@@ -94,12 +99,45 @@ rutas ni aparecen en el menú.
 Eso se controla desde un solo archivo, `app-angular/src/app/core/sprint.config.ts`:
 
 ```ts
-export const SOLO_SPRINT_1 = true;
+export const SOLO_SPRINT_1 = false;
 export const RUTAS_SPRINT_1 = ['dashboard', 'maintenance', 'inventory'];
 ```
 
-Para mostrar el panel completo se cambia `true` por `false` y se recarga. Para agregar
-una pantalla al sprint, se añade su ruta a la lista.
+El mecanismo se queda por si en otra entrega hay que volver a recortar: se pone
+`true` y se ajusta la lista de rutas.
+
+---
+
+## 3.2 Catálogo de equipo
+
+El inventario se capturaba escribiendo el nombre a mano, así que el mismo aparato
+terminaba guardado de varias formas: "Caminadora", "caminadora", "Caminadoras",
+"Cinta de correr". Para la base eran equipos distintos, lo que ensucia los reportes y
+hace que el socio no encuentre nada al buscar en la app.
+
+Ahora el dueño **elige de un catálogo** de 52 equipos estándar en vez de escribir, y la
+base impide que un mismo equipo se repita dentro de un gimnasio: si tiene seis
+caminadoras, pone cantidad 6. La comparación no distingue mayúsculas ni acentos, así
+que "caminadora" choca con "Caminadora".
+
+Si el equipo no está en el catálogo, se puede capturar con la opción
+*No está en la lista…*, que guarda el nombre limpio de espacios sobrantes.
+
+El archivo `03_catalogo.sql` sirve para los dos casos: instalación nueva, y base que
+ya estaba en uso. En el segundo caso junta los duplicados que existan, sumando las
+cantidades, antes de poner las restricciones.
+
+El mismo problema estaba en otros tres lugares y `04_normalizacion.sql` los corrige:
+
+- **Amenidades**: ahora salen de un catálogo de 16 y no se repiten dentro de un gimnasio.
+- **Servicios**: un gimnasio ya no puede ofrecer dos veces el mismo.
+- **Reportes de mantenimiento**: el equipo se elige del inventario del gimnasio en vez de escribirlo.
+- **Ciudad y estado**: se dejan parejos, porque el socio busca por ciudad en la app.
+
+Además, la API limpia el texto de **toda** petición antes de guardarlo: recorta espacios
+de los lados y junta los repetidos de en medio. Así `"  Prensa   de piernas "` y
+`"Prensa de piernas"` entran idénticos y las restricciones sí pueden hacer su trabajo.
+Las contraseñas solo se recortan a los lados, nunca por dentro.
 
 ---
 

@@ -37,3 +37,14 @@
   .equipo { flex-wrap: wrap; }
   .botones { width: 100%; justify-content: flex-start; }
 }
+
+.fp-field.ancho { grid-column: 1 / -1; }
+
+.aviso-repetido {
+  font-size: 12.5px;
+  color: var(--fp-gray-mid);
+  background: var(--fp-gray-bg);
+  border-radius: var(--fp-radius-ctrl);
+  padding: 10px 14px;
+  margin: 0 0 6px;
+}

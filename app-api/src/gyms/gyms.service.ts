@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
+  CatalogoAmenidad,
   AmenidadGimnasio,
   FotoGimnasio,
   Gimnasio,
@@ -29,6 +30,7 @@ export class GymsService {
     @InjectRepository(FotoGimnasio) private fotos: Repository<FotoGimnasio>,
     @InjectRepository(ServicioGimnasio) private servicios: Repository<ServicioGimnasio>,
     @InjectRepository(AmenidadGimnasio) private amenidades: Repository<AmenidadGimnasio>,
+    @InjectRepository(CatalogoAmenidad) private catalogoAmenidades: Repository<CatalogoAmenidad>,
     @InjectRepository(PrecioGimnasio) private precios: Repository<PrecioGimnasio>,
     @InjectRepository(PrecioHistorial) private historial: Repository<PrecioHistorial>,
   ) {}
@@ -125,16 +127,28 @@ export class GymsService {
     return { mensaje: 'Foto eliminada' };
   }
 
+  /** Avisa con palabras claras cuando ya existe ese dato en el gimnasio. */
+  private esDuplicado(error: any): boolean {
+    return error?.code === 'ER_DUP_ENTRY' || error?.errno === 1062;
+  }
+
   // ----- Servicios -----
   async agregarServicio(id: number, dto: ServicioDto) {
-    return this.servicios.save(
-      this.servicios.create({
-        idGimnasio: id,
-        nombre: dto.nombre,
-        descripcion: dto.descripcion,
-        activo: dto.activo ?? true,
-      }),
-    );
+    try {
+      return await this.servicios.save(
+        this.servicios.create({
+          idGimnasio: id,
+          nombre: dto.nombre,
+          descripcion: dto.descripcion,
+          activo: dto.activo ?? true,
+        }),
+      );
+    } catch (error) {
+      if (this.esDuplicado(error)) {
+        throw new BadRequestException(`Tu gimnasio ya ofrece ${dto.nombre}.`);
+      }
+      throw error;
+    }
   }
 
   async borrarServicio(id: number, idServicio: number) {
@@ -145,10 +159,36 @@ export class GymsService {
   }
 
   // ----- Amenidades -----
+  /** Lista estandar de amenidades, para elegir en vez de escribir. */
+  catalogoDeAmenidades() {
+    return this.catalogoAmenidades.find({ where: { activo: true }, order: { nombre: 'ASC' } });
+  }
+
   async agregarAmenidad(id: number, dto: AmenidadDto) {
-    return this.amenidades.save(
-      this.amenidades.create({ idGimnasio: id, nombre: dto.nombre, icono: dto.icono }),
-    );
+    // Si la amenidad esta en el catalogo, se guarda con el nombre y el icono
+    // del catalogo, sin importar como la haya escrito el dueno.
+    const delCatalogo = dto.idCatalogo
+      ? await this.catalogoAmenidades.findOne({ where: { id: dto.idCatalogo } })
+      : await this.catalogoAmenidades.findOne({ where: { nombre: dto.nombre } });
+
+    const nombre = delCatalogo ? delCatalogo.nombre : dto.nombre;
+    if (!nombre) throw new BadRequestException('Elige una amenidad o escribe su nombre');
+
+    try {
+      return await this.amenidades.save(
+        this.amenidades.create({
+          idGimnasio: id,
+          idCatalogo: delCatalogo ? delCatalogo.id : null,
+          nombre,
+          icono: dto.icono || (delCatalogo ? delCatalogo.icono : null),
+        }),
+      );
+    } catch (error) {
+      if (this.esDuplicado(error)) {
+        throw new BadRequestException(`Tu gimnasio ya tiene ${nombre}.`);
+      }
+      throw error;
+    }
   }
 
   async borrarAmenidad(id: number, idAmenidad: number) {

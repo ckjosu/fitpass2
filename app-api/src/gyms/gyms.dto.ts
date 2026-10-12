@@ -49,7 +49,9 @@ export class ServicioDto {
 }
 
 export class AmenidadDto {
-  @ApiProperty({ example: 'Regaderas' }) @IsString() nombre: string;
+  @ApiPropertyOptional({ example: 1, description: 'Id de la amenidad en el catalogo' })
+  @IsOptional() @IsInt() idCatalogo?: number;
+  @ApiPropertyOptional({ example: 'Regaderas' }) @IsOptional() @IsString() nombre?: string;
   @ApiPropertyOptional({ example: 'shower' }) @IsOptional() @IsString() icono?: string;
 }
 

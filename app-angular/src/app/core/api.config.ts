@@ -227,6 +227,7 @@ export type CategoriaInventario =
 
 export interface Equipo {
   id: number;
+  idCatalogo: number | null;
   categoria: CategoriaInventario;
   nombre: string;
   descripcion: string | null;
@@ -258,4 +259,17 @@ export interface CodigoPantalla {
   codigo: string;
   venceEn: string;
   segundos: number;
+}
+
+export interface EquipoCatalogo {
+  id: number;
+  categoria: CategoriaInventario;
+  nombre: string;
+  descripcion: string | null;
+}
+
+export interface GrupoCatalogo {
+  categoria: CategoriaInventario;
+  etiqueta: string;
+  equipos: EquipoCatalogo[];
 }

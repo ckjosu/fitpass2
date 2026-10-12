@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
+  CatalogoAmenidad,
   AmenidadGimnasio, FotoGimnasio, Gimnasio, HorarioGimnasio,
   PrecioGimnasio, PrecioHistorial, ServicioGimnasio,
 } from '../entities';
@@ -11,7 +12,7 @@ import { GymsController, PricesController } from './gyms.controller';
   imports: [
     TypeOrmModule.forFeature([
       Gimnasio, HorarioGimnasio, FotoGimnasio, ServicioGimnasio,
-      AmenidadGimnasio, PrecioGimnasio, PrecioHistorial,
+      AmenidadGimnasio, CatalogoAmenidad, PrecioGimnasio, PrecioHistorial,
     ]),
   ],
   controllers: [GymsController, PricesController],

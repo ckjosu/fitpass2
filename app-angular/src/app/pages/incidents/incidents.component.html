@@ -18,7 +18,11 @@
   <div class="fp-grid-2">
     <div class="fp-field">
       <label for="equipo">Equipo o zona</label>
-      <input id="equipo" type="text" formControlName="equipo" placeholder="Cinta de correr #2" />
+      <select id="equipo" formControlName="equipo">
+        <option value="" disabled>Selecciona el equipo</option>
+        <option *ngFor="let e of equiposDelGimnasio" [value]="e">{{ e }}</option>
+        <option value="otro">Otra zona o equipo…</option>
+      </select>
     </div>
     <div class="fp-field">
       <label for="prioridad">Prioridad</label>
@@ -28,6 +32,11 @@
         <option value="baja">Baja</option>
       </select>
     </div>
+  </div>
+
+  <div class="fp-field" *ngIf="equipoLibre">
+    <label for="equipoOtro">¿Qué equipo o zona?</label>
+    <input id="equipoOtro" type="text" formControlName="equipoOtro" placeholder="Regadera 3 del vestidor" />
   </div>
 
   <div class="fp-field">

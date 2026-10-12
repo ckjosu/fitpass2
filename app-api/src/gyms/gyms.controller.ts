@@ -103,6 +103,12 @@ export class GymsController {
     return this.gyms.borrarServicio(gymId, idServicio);
   }
 
+  @Get('catalogo/amenidades')
+  @ApiOperation({ summary: 'Catalogo de amenidades estandar' })
+  catalogoAmenidades() {
+    return this.gyms.catalogoDeAmenidades();
+  }
+
   @Post(':gymId/amenidades')
   @UseGuards(DuenoDelGimnasioGuard)
   agregarAmenidad(@Param('gymId', ParseIntPipe) gymId: number, @Body() dto: AmenidadDto) {

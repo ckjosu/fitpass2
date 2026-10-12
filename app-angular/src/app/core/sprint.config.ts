@@ -7,8 +7,10 @@
  * rutas ni aparecen en el menú.
  *
  * Para volver al panel completo, cambia true por false. Nada más.
+ *
+ * Sprint 2: queda en false, así que se publican todas las pantallas.
  */
-export const SOLO_SPRINT_1 = true;
+export const SOLO_SPRINT_1 = false;
 
 /** Pantallas que se muestran durante el Sprint 1. */
 export const RUTAS_SPRINT_1 = ['dashboard', 'maintenance', 'inventory'];

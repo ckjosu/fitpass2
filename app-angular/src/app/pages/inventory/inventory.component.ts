@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { InventoryService } from '../../core/inventory.service';
 import { AuthService } from '../../core/auth.service';
-import { Equipo, RespuestaInventario } from '../../core/api.config';
+import { Equipo, GrupoCatalogo, RespuestaInventario } from '../../core/api.config';
 import { mensajeDeError } from '../../core/auth.interceptor';
 
 @Component({
@@ -34,16 +34,29 @@ export class InventoryComponent implements OnInit, OnDestroy {
   error = '';
   exito = '';
   datos: RespuestaInventario | null = null;
+  catalogo: GrupoCatalogo[] = [];
   mostrandoForm = false;
 
+  // El equipo se elige del catálogo. "otro" abre el campo libre, para lo que
+  // no esté en la lista. Así el mismo aparato no queda escrito de varias formas.
   form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.minLength(2)]],
-    categoria: ['maquinas', Validators.required],
+    idCatalogo: ['', Validators.required],
+    nombre: [''],
+    categoria: ['maquinas'],
     descripcion: [''],
     cantidad: [1, [Validators.required, Validators.min(1)]],
   });
 
+  get esPersonalizado(): boolean {
+    return this.form.value.idCatalogo === 'otro';
+  }
+
   ngOnInit(): void {
+    this.inventario.catalogo().subscribe({
+      next: (c) => (this.catalogo = c),
+      error: () => (this.catalogo = []),
+    });
+
     this.sub = this.auth.gimnasioActual$.subscribe((id) => {
       this.gymId = Number(id);
       this.cargar();
@@ -73,12 +86,23 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   cerrarForm(): void {
     this.mostrandoForm = false;
-    this.form.reset({ nombre: '', categoria: 'maquinas', descripcion: '', cantidad: 1 });
+    this.form.reset({ idCatalogo: '', nombre: '', categoria: 'maquinas', descripcion: '', cantidad: 1 });
   }
 
   guardar(): void {
     if (this.form.invalid) return;
-    this.inventario.crear(this.gymId, this.form.getRawValue()).subscribe({
+    const v = this.form.getRawValue();
+
+    const datos = this.esPersonalizado
+      ? { nombre: v.nombre, categoria: v.categoria, descripcion: v.descripcion, cantidad: v.cantidad }
+      : { idCatalogo: Number(v.idCatalogo), descripcion: v.descripcion, cantidad: v.cantidad };
+
+    if (this.esPersonalizado && (v.nombre || '').trim().length < 2) {
+      this.error = 'Escribe el nombre del equipo';
+      return;
+    }
+
+    this.inventario.crear(this.gymId, datos).subscribe({
       next: (d) => {
         this.datos = d;
         this.exito = 'Equipo agregado al inventario.';

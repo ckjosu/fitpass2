@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { IncidentsService } from '../../core/incidents.service';
+import { InventoryService } from '../../core/inventory.service';
 import { AuthService } from '../../core/auth.service';
 import { Incidencia, RespuestaIncidencias } from '../../core/api.config';
 import { mensajeDeError } from '../../core/auth.interceptor';
@@ -18,6 +19,7 @@ import { mensajeDeError } from '../../core/auth.interceptor';
 export class IncidentsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private incidencias = inject(IncidentsService);
+  private inventario = inject(InventoryService);
   private auth = inject(AuthService);
   private sub?: Subscription;
 
@@ -31,8 +33,17 @@ export class IncidentsComponent implements OnInit, OnDestroy {
   filtroPrioridad = '';
   mostrandoForm = false;
 
+  // El equipo se elige del inventario del gimnasio, no se escribe. Así el
+  // mismo aparato no queda reportado con tres nombres distintos.
+  equiposDelGimnasio: string[] = [];
+
+  get equipoLibre(): boolean {
+    return this.form.value.equipo === 'otro';
+  }
+
   form = this.fb.nonNullable.group({
-    equipo: ['', [Validators.required, Validators.minLength(2)]],
+    equipo: ['', Validators.required],
+    equipoOtro: [''],
     titulo: ['', [Validators.required, Validators.minLength(5)]],
     descripcion: [''],
     prioridad: ['media'],
@@ -42,6 +53,11 @@ export class IncidentsComponent implements OnInit, OnDestroy {
     this.sub = this.auth.gimnasioActual$.subscribe((id) => {
       this.gymId = Number(id);
       this.cargar();
+
+      this.inventario.lista(this.gymId).subscribe({
+        next: (d) => (this.equiposDelGimnasio = d.equipos.map((e) => e.nombre)),
+        error: () => (this.equiposDelGimnasio = []),
+      });
     });
   }
 
@@ -68,14 +84,27 @@ export class IncidentsComponent implements OnInit, OnDestroy {
 
   cerrarForm(): void {
     this.mostrandoForm = false;
-    this.form.reset({ equipo: '', titulo: '', descripcion: '', prioridad: 'media' });
+    this.form.reset({ equipo: '', equipoOtro: '', titulo: '', descripcion: '', prioridad: 'media' });
   }
 
   guardar(): void {
     if (this.form.invalid) return;
     this.error = '';
 
-    this.incidencias.crear(this.gymId, this.form.getRawValue()).subscribe({
+    const v = this.form.getRawValue();
+    const equipo = this.equipoLibre ? (v.equipoOtro || '').trim() : v.equipo;
+
+    if (equipo.length < 2) {
+      this.error = 'Escribe qué equipo o zona falló';
+      return;
+    }
+
+    this.incidencias.crear(this.gymId, {
+      equipo,
+      titulo: v.titulo,
+      descripcion: v.descripcion,
+      prioridad: v.prioridad,
+    }).subscribe({
       next: (d) => {
         this.datos = d;
         this.exito = 'Reporte levantado.';

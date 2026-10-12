@@ -13,19 +13,33 @@
 
 <form class="fp-card" [formGroup]="form" (ngSubmit)="guardar()" *ngIf="mostrandoForm">
   <h3>Nuevo equipo o actividad</h3>
-  <p class="fp-card-sub">Por ejemplo: prensa de piernas, caminadoras, clase de spinning</p>
+  <p class="fp-card-sub">Elige de la lista para que todos los gimnasios usen el mismo nombre</p>
 
   <div class="fp-grid-2">
-    <div class="fp-field">
-      <label for="nombre">Nombre</label>
-      <input id="nombre" type="text" formControlName="nombre" placeholder="Prensa de piernas" />
-    </div>
-    <div class="fp-field">
-      <label for="categoria">Categoría</label>
-      <select id="categoria" formControlName="categoria">
-        <option *ngFor="let c of categorias" [value]="c.valor">{{ c.etiqueta }}</option>
+    <div class="fp-field ancho">
+      <label for="idCatalogo">Equipo</label>
+      <select id="idCatalogo" formControlName="idCatalogo">
+        <option value="" disabled>Selecciona un equipo</option>
+        <optgroup *ngFor="let g of catalogo" [label]="g.etiqueta">
+          <option *ngFor="let e of g.equipos" [value]="e.id">{{ e.nombre }}</option>
+        </optgroup>
+        <option value="otro">No está en la lista…</option>
       </select>
     </div>
+
+    <ng-container *ngIf="esPersonalizado">
+      <div class="fp-field">
+        <label for="nombre">Nombre del equipo</label>
+        <input id="nombre" type="text" formControlName="nombre" placeholder="Máquina de remo adaptada" />
+      </div>
+      <div class="fp-field">
+        <label for="categoria">Categoría</label>
+        <select id="categoria" formControlName="categoria">
+          <option *ngFor="let c of categorias" [value]="c.valor">{{ c.etiqueta }}</option>
+        </select>
+      </div>
+    </ng-container>
+
     <div class="fp-field">
       <label for="cantidad">¿Cuántos tienes?</label>
       <input id="cantidad" type="number" min="1" formControlName="cantidad" />
@@ -35,6 +49,10 @@
       <input id="descripcion" type="text" formControlName="descripcion" placeholder="Carga por discos" />
     </div>
   </div>
+
+  <p class="aviso-repetido">
+    Si ya tienes ese equipo, no lo agregues otra vez: edita la cantidad del que ya está en tu lista.
+  </p>
 
   <div class="acciones">
     <button type="button" class="fp-btn fp-btn-secondary" (click)="cerrarForm()">Cancelar</button>

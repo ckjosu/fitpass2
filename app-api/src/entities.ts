@@ -91,6 +91,7 @@ export class ServicioGimnasio {
 export class AmenidadGimnasio {
   @PrimaryGeneratedColumn({ unsigned: true }) id: number;
   @Column({ name: 'id_gimnasio' }) idGimnasio: number;
+  @Column({ name: 'id_catalogo', nullable: true }) idCatalogo: number;
   @Column() nombre: string;
   @Column({ nullable: true }) icono: string;
   @ManyToOne(() => Gimnasio) @JoinColumn({ name: 'id_gimnasio' }) gimnasio: Gimnasio;
@@ -286,10 +287,33 @@ export type CategoriaInventario =
 export class InventarioGimnasio {
   @PrimaryGeneratedColumn({ unsigned: true }) id: number;
   @Column({ name: 'id_gimnasio' }) idGimnasio: number;
+  @Column({ name: 'id_catalogo', nullable: true }) idCatalogo: number;
   @Column() categoria: CategoriaInventario;
   @Column() nombre: string;
   @Column({ nullable: true }) descripcion: string;
   @Column() cantidad: number;
   @Column() situacion: 'disponible' | 'fuera_de_servicio';
   @Column({ name: 'creado_en' }) creadoEn: Date;
+}
+
+/**
+ * Catalogo de equipo estandar. El dueno elige de aqui en vez de escribir
+ * el nombre, para que el mismo aparato no quede capturado de varias formas.
+ */
+@Entity('catalogo_equipo')
+export class CatalogoEquipo {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column() categoria: CategoriaInventario;
+  @Column() nombre: string;
+  @Column({ nullable: true }) descripcion: string;
+  @Column() activo: boolean;
+}
+
+/** Catalogo de amenidades estandar, para que no se escriban de varias formas. */
+@Entity('catalogo_amenidad')
+export class CatalogoAmenidad {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column() nombre: string;
+  @Column({ nullable: true }) icono: string;
+  @Column() activo: boolean;
 }

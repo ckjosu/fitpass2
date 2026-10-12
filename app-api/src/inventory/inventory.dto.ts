@@ -4,12 +4,24 @@ import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } fro
 const CATEGORIAS = ['peso_libre', 'maquinas', 'cardio', 'funcional', 'clases', 'otro'];
 
 export class CrearEquipoDto {
-  @ApiProperty({ example: 'Prensa de piernas' })
-  @IsString() @MinLength(2, { message: 'Escribe el nombre del equipo' }) @MaxLength(120)
-  nombre: string;
+  @ApiPropertyOptional({
+    example: 11,
+    description:
+      'Id del equipo en el catalogo. Es la forma recomendada: el nombre y la ' +
+      'categoria se toman del catalogo y asi no se captura el mismo aparato ' +
+      'escrito de varias formas.',
+  })
+  @IsOptional() @IsInt() idCatalogo?: number;
 
-  @ApiProperty({ example: 'maquinas', enum: CATEGORIAS })
-  @IsIn(CATEGORIAS) categoria: any;
+  @ApiPropertyOptional({
+    example: 'Maquina de remo adaptada',
+    description: 'Solo si el equipo no esta en el catalogo.',
+  })
+  @IsOptional() @IsString() @MinLength(2, { message: 'Escribe el nombre del equipo' }) @MaxLength(120)
+  nombre?: string;
+
+  @ApiPropertyOptional({ example: 'maquinas', enum: CATEGORIAS })
+  @IsOptional() @IsIn(CATEGORIAS) categoria?: any;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) descripcion?: string;
 
@@ -22,6 +34,7 @@ export class CrearEquipoDto {
 }
 
 export class ActualizarEquipoDto {
+  @ApiPropertyOptional() @IsOptional() @IsInt() idCatalogo?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) nombre?: string;
   @ApiPropertyOptional({ enum: CATEGORIAS }) @IsOptional() @IsIn(CATEGORIAS) categoria?: any;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) descripcion?: string;
