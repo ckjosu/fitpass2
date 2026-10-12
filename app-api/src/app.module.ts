@@ -24,7 +24,10 @@ import { InventoryModule } from './inventory/inventory.module';
       entities: [__dirname + '/entities{.ts,.js}'],
       synchronize: false, // el esquema lo crean los scripts de db/
       timezone: 'Z',
-      extra: { decimalNumbers: true },
+      extra: {
+        decimalNumbers: true,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      },
     }),
     AuthModule,
     GymsModule,
