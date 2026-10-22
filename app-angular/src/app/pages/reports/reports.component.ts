@@ -22,11 +22,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
   error = '';
   datos: Reportes | null = null;
 
-  mesesSeleccionados = 6;
+  mesesSeleccionados = 1;
   opcionesMeses = [
-    { valor: 6, etiqueta: 'Últimos 6 meses' },
-    { valor: 12, etiqueta: 'Últimos 12 meses' },
-    { valor: 24, etiqueta: 'Últimos 24 meses' },
+    { valor: 1, etiqueta: 'Último mes' },
+    { valor: 3, etiqueta: 'Mes anterior (3 meses)' },
+    { valor: 6, etiqueta: 'Meses pasados (6 meses)' },
+    { valor: 12, etiqueta: 'Año pasado (12 meses)' },
   ];
 
   visitasPorMes: { etiqueta: string; valor: number }[] = [];
