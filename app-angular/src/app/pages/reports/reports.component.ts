@@ -22,6 +22,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
   error = '';
   datos: Reportes | null = null;
 
+  mesesSeleccionados = 6;
+  opcionesMeses = [
+    { valor: 6, etiqueta: 'Últimos 6 meses' },
+    { valor: 12, etiqueta: 'Últimos 12 meses' },
+    { valor: 24, etiqueta: 'Últimos 24 meses' },
+  ];
+
   visitasPorMes: { etiqueta: string; valor: number }[] = [];
   visitasPorDia: { etiqueta: string; valor: number }[] = [];
   maxMes = 1;
@@ -33,10 +40,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sub = this.auth.gimnasioActual$
-      .pipe(switchMap((id) => {
-        this.cargando = true;
-        return this.accesos.reportes(Number(id), 6);
-      }))
+      .pipe(
+        switchMap((id) => {
+          this.cargando = true;
+          this.error = '';
+          return this.accesos.reportes(Number(id), this.mesesSeleccionados);
+        }),
+      )
       .subscribe({
         next: (r) => this.procesar(r),
         error: (e) => {
@@ -44,6 +54,21 @@ export class ReportsComponent implements OnInit, OnDestroy {
           this.cargando = false;
         },
       });
+  }
+
+  cambiarMeses(meses: number): void {
+    this.mesesSeleccionados = Number(meses);
+    const id = this.auth.gimnasioActual$.value;
+    if (id == null) return;
+    this.cargando = true;
+    this.error = '';
+    this.accesos.reportes(Number(id), this.mesesSeleccionados).subscribe({
+      next: (r) => this.procesar(r),
+      error: (e) => {
+        this.error = mensajeDeError(e, 'No se pudieron cargar los reportes');
+        this.cargando = false;
+      },
+    });
   }
 
   private procesar(r: Reportes): void {
@@ -56,7 +81,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
         valor: m.permitidos,
       };
     });
-    this.visitasPorDia = r.porDiaSemana.map((d) => ({ etiqueta: d.dia.slice(0, 3), valor: d.visitas }));
+    this.visitasPorDia = r.porDiaSemana.map((d) => ({
+      etiqueta: d.dia.slice(0, 3),
+      valor: d.visitas,
+    }));
 
     this.maxMes = Math.max(1, ...this.visitasPorMes.map((m) => m.valor));
     this.maxDia = Math.max(1, ...this.visitasPorDia.map((d) => d.valor));

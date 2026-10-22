@@ -3,6 +3,17 @@
   <p class="subtitle">Desempeño de tu gimnasio a lo largo del tiempo</p>
 </div>
 
+<div class="periodo">
+  <label for="periodo-meses">Periodo</label>
+  <select
+    id="periodo-meses"
+    [value]="mesesSeleccionados"
+    (change)="cambiarMeses(+$any($event.target).value)"
+  >
+    <option *ngFor="let o of opcionesMeses" [value]="o.valor">{{ o.etiqueta }}</option>
+  </select>
+</div>
+
 <p class="fp-error" *ngIf="error">{{ error }}</p>
 <p class="fp-loading" *ngIf="cargando">Calculando reportes...</p>
 
@@ -10,7 +21,7 @@
   <div class="fp-grid-2">
     <div class="fp-card">
       <h3>Visitas por mes</h3>
-      <p class="fp-card-sub">Últimos 6 meses</p>
+      <p class="fp-card-sub">Últimos {{ mesesSeleccionados }} meses</p>
       <p class="fp-empty" *ngIf="visitasPorMes.length === 0">Aún no hay visitas registradas.</p>
       <div class="bars" *ngIf="visitasPorMes.length > 0">
         <div class="bar-col" *ngFor="let m of visitasPorMes">
