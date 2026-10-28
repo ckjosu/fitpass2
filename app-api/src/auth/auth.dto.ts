@@ -37,3 +37,27 @@ export class CambiarPasswordDto {
   @ApiProperty() @IsString() actual: string;
   @ApiProperty() @IsString() @MinLength(6) nueva: string;
 }
+
+export class ActualizarPerfilDto {
+  @ApiProperty({ required: false, example: 'Ricardo Pech' })
+  @IsOptional()
+  @IsString()
+  nombre?: string;
+
+  @ApiProperty({ required: false, example: '9991112233' })
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+
+  @ApiProperty({ required: false, example: 'nuevo@correo.com' })
+  @IsOptional()
+  @IsEmail({}, { message: 'Escribe un correo valido' })
+  email?: string;
+
+  /** Obligatorio solo si se cambia el correo. */
+  @ApiProperty({ required: false, description: 'Requerido al cambiar el correo' })
+  @IsOptional()
+  @IsString()
+  passwordActual?: string;
+}
+

@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { ContratoGimnasio, Gimnasio, Usuario } from '../entities';
-import { CambiarPasswordDto, LoginDto, RegistroClienteDto, RegistroDuenoDto } from './auth.dto';
+import { ActualizarPerfilDto, CambiarPasswordDto, LoginDto, RegistroClienteDto, RegistroDuenoDto } from './auth.dto';
 import { UsuarioToken } from '../common/security';
 
 @Injectable()
@@ -140,6 +140,45 @@ export class AuthService {
       rol: usuario.rol,
       gimnasios: gimnasios.map((g) => ({ id: g.id, nombre: g.nombre, situacion: g.situacion })),
     };
+  }
+
+  
+  /** Actualiza nombre, telefono y/o correo del usuario autenticado. */
+  async actualizarPerfil(id: number, dto: ActualizarPerfilDto) {
+    const usuario = await this.usuarios.findOne({ where: { id } });
+    if (!usuario) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    if (dto.nombre !== undefined) {
+      const nombre = dto.nombre.trim();
+      if (!nombre) throw new BadRequestException('El nombre no puede quedar vacio');
+      usuario.nombre = nombre;
+    }
+
+    if (dto.telefono !== undefined) {
+      usuario.telefono = dto.telefono?.trim() || null;
+    }
+
+    if (dto.email !== undefined) {
+      const email = dto.email.toLowerCase().trim();
+      if (email !== usuario.email) {
+        if (!dto.passwordActual) {
+          throw new BadRequestException('Para cambiar el correo escribe tu contrasena actual');
+        }
+        if (!bcrypt.compareSync(dto.passwordActual, usuario.passwordHash)) {
+          throw new BadRequestException('Tu contrasena actual no coincide');
+        }
+        const existe = await this.usuarios.findOne({ where: { email } });
+        if (existe && existe.id !== id) {
+          throw new BadRequestException('Ese correo ya esta registrado');
+        }
+        usuario.email = email;
+      }
+    }
+
+    await this.usuarios.save(usuario);
+    return this.perfil(id);
   }
 
   async cambiarPassword(id: number, dto: CambiarPasswordDto) {

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CambiarPasswordDto, LoginDto, RegistroClienteDto, RegistroDuenoDto } from './auth.dto';
+import { ActualizarPerfilDto, CambiarPasswordDto, LoginDto, RegistroClienteDto, RegistroDuenoDto } from './auth.dto';
 import { Auth, JwtGuard, UsuarioToken } from '../common/security';
 
 @ApiTags('auth')
@@ -33,6 +33,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Datos del usuario del token' })
   perfil(@Auth() u: UsuarioToken) {
     return this.auth.perfil(u.sub);
+  }
+
+
+  @Put('perfil')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualiza nombre, telefono y/o correo del usuario' })
+  actualizarPerfil(@Auth() u: UsuarioToken, @Body() dto: ActualizarPerfilDto) {
+    return this.auth.actualizarPerfil(u.sub, dto);
   }
 
   @Put('password')
