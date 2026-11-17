@@ -9,6 +9,8 @@ import '../theme/app_theme.dart';
 import 'planes_screen.dart';
 import 'escanear_qr_screen.dart';
 import 'guia_screen.dart';
+import 'entreno/sesion_screen.dart';
+import '../data/rutina_demo.dart';
 
 const _meses = [
   'enero',
@@ -191,9 +193,20 @@ class _InicioScreenState extends State<InicioScreen> {
         icon: const Icon(Icons.fitness_center),
         label: const Text('Guía de ejercicios (beta)'),
       ),
+      const SizedBox(height: 12),
+      FilledButton.icon(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const SesionScreen(rutina: rutinaPechoTriceps),
+          ),
+        ),
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('Entrenar: Pecho + Tríceps'),
+      ),
     ];
   }
 }
+
 
 // ------------------------------------------------------------------
 // Piezas de la pantalla
