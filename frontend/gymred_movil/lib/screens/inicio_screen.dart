@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/suscripcion.dart';
 import '../providers/auth_provider.dart';
 import '../services/movil_service.dart';
@@ -7,10 +8,21 @@ import '../services/notificaciones_service.dart';
 import '../theme/app_theme.dart';
 import 'planes_screen.dart';
 import 'escanear_qr_screen.dart';
+import 'guia_screen.dart';
 
 const _meses = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
 ];
 
 /// "18 de octubre"
@@ -65,16 +77,17 @@ class _InicioScreenState extends State<InicioScreen> {
   /// Abre la pantalla de planes. Si el socio contrata, recarga el inicio.
   Future<void> _abrirPlanes({int? idPlanActual}) async {
     final contrato = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => PlanesScreen(idPlanActual: idPlanActual)),
+      MaterialPageRoute(
+        builder: (_) => PlanesScreen(idPlanActual: idPlanActual),
+      ),
     );
     if (contrato == true) _recargar();
   }
 
   /// Abre el escáner. Al volver, recarga para actualizar las visitas del día.
   Future<void> _escanear() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const EscanearQrScreen()),
-    );
+    await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const EscanearQrScreen()));
     if (mounted) _recargar();
   }
 
@@ -82,8 +95,9 @@ class _InicioScreenState extends State<InicioScreen> {
   Widget build(BuildContext context) {
     final usuario = context.watch<AuthProvider>().usuario;
     final nombre = (usuario?.nombre ?? '').trim().split(' ').first;
-    final primerNombre =
-        nombre.isEmpty ? '' : nombre[0].toUpperCase() + nombre.substring(1);
+    final primerNombre = nombre.isEmpty
+        ? ''
+        : nombre[0].toUpperCase() + nombre.substring(1);
 
     return Scaffold(
       appBar: AppBar(
@@ -109,13 +123,18 @@ class _InicioScreenState extends State<InicioScreen> {
               padding: const EdgeInsets.all(20),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                Text('Hola, $primerNombre 👋',
-                    style: Theme.of(context).textTheme.headlineMedium),
+                Text(
+                  'Hola, $primerNombre 👋',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 16),
                 if (snap.connectionState == ConnectionState.waiting)
                   const _Cargando()
                 else if (snap.hasError)
-                  _ErrorCarga(mensaje: snap.error.toString(), onReintentar: _recargar)
+                  _ErrorCarga(
+                    mensaje: snap.error.toString(),
+                    onReintentar: _recargar,
+                  )
                 else
                   ..._contenido(snap.data!),
               ],
@@ -164,6 +183,14 @@ class _InicioScreenState extends State<InicioScreen> {
         motivo: 'Ya usaste tus visitas de hoy. Vuelve mañana.',
         onEscanear: _escanear,
       ),
+      const SizedBox(height: 16),
+      OutlinedButton.icon(
+        onPressed: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const GuiaScreen())),
+        icon: const Icon(Icons.fitness_center),
+        label: const Text('Guía de ejercicios (beta)'),
+      ),
     ];
   }
 }
@@ -205,11 +232,18 @@ class _ErrorCarga extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off, size: 48, color: AppColors.textoSecundario),
+          const Icon(
+            Icons.cloud_off,
+            size: 48,
+            color: AppColors.textoSecundario,
+          ),
           const SizedBox(height: 12),
           Text(mensaje, textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          OutlinedButton(onPressed: onReintentar, child: const Text('Reintentar')),
+          OutlinedButton(
+            onPressed: onReintentar,
+            child: const Text('Reintentar'),
+          ),
         ],
       ),
     );
@@ -229,7 +263,11 @@ class _Tarjeta extends StatelessWidget {
         color: AppColors.blanco,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: child,
@@ -245,8 +283,9 @@ class _TarjetaSuscripcion extends StatelessWidget {
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
     final dias = s.diasRestantes;
-    final textoDias =
-        dias <= 0 ? 'Vence hoy' : (dias == 1 ? 'Queda 1 día' : 'Quedan $dias días');
+    final textoDias = dias <= 0
+        ? 'Vence hoy'
+        : (dias == 1 ? 'Queda 1 día' : 'Quedan $dias días');
 
     return _Tarjeta(
       child: Column(
@@ -254,9 +293,14 @@ class _TarjetaSuscripcion extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text('Plan ${s.plan.nombre}', style: textos.titleLarge)),
+              Expanded(
+                child: Text('Plan ${s.plan.nombre}', style: textos.titleLarge),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0x1F16A34A),
                   borderRadius: BorderRadius.circular(20),
@@ -266,16 +310,25 @@ class _TarjetaSuscripcion extends StatelessWidget {
                   children: [
                     Icon(Icons.circle, size: 8, color: AppColors.verde),
                     SizedBox(width: 6),
-                    Text('Activa',
-                        style: TextStyle(color: AppColors.verde, fontWeight: FontWeight.w600)),
+                    Text(
+                      'Activa',
+                      style: TextStyle(
+                        color: AppColors.verde,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text('Vence el ${fechaLarga(s.fechaFin)}',
-              style: textos.bodyMedium?.copyWith(color: AppColors.textoSecundario)),
+          Text(
+            'Vence el ${fechaLarga(s.fechaFin)}',
+            style: textos.bodyMedium?.copyWith(
+              color: AppColors.textoSecundario,
+            ),
+          ),
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
@@ -324,7 +377,11 @@ class _Dato extends StatelessWidget {
   final String titulo;
   final String valor;
   final String unidad;
-  const _Dato({required this.titulo, required this.valor, required this.unidad});
+  const _Dato({
+    required this.titulo,
+    required this.valor,
+    required this.unidad,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -332,13 +389,22 @@ class _Dato extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(titulo, style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario)),
+        Text(
+          titulo,
+          style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario),
+        ),
         const SizedBox(height: 4),
-        Text.rich(TextSpan(children: [
+        Text.rich(
           TextSpan(
-              text: valor, style: textos.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-          TextSpan(text: ' $unidad', style: textos.bodySmall),
-        ])),
+            children: [
+              TextSpan(
+                text: valor,
+                style: textos.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              TextSpan(text: ' $unidad', style: textos.bodySmall),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -364,7 +430,10 @@ class _AvisoVencimiento extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: AppColors.naranjaOscuro),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: AppColors.naranjaOscuro,
+          ),
           const SizedBox(width: 10),
           Expanded(child: Text(texto)),
           TextButton(onPressed: onRenovar, child: const Text('Renovar')),
@@ -386,13 +455,18 @@ class _SinSuscripcion extends StatelessWidget {
         children: [
           const Icon(Icons.card_membership, size: 48, color: AppColors.naranja),
           const SizedBox(height: 12),
-          Text('No tienes una suscripción activa',
-              textAlign: TextAlign.center, style: textos.titleLarge),
+          Text(
+            'No tienes una suscripción activa',
+            textAlign: TextAlign.center,
+            style: textos.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
             'Contrata un plan para entrar a cualquier gimnasio afiliado de la región.',
             textAlign: TextAlign.center,
-            style: textos.bodyMedium?.copyWith(color: AppColors.textoSecundario),
+            style: textos.bodyMedium?.copyWith(
+              color: AppColors.textoSecundario,
+            ),
           ),
           const SizedBox(height: 16),
           FilledButton(onPressed: onVerPlanes, child: const Text('Ver planes')),
@@ -424,9 +498,11 @@ class _BotonQr extends StatelessWidget {
         ),
         if (!habilitado) ...[
           const SizedBox(height: 8),
-          Text(motivo,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textoSecundario)),
+          Text(
+            motivo,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textoSecundario),
+          ),
         ],
       ],
     );
