@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/historial.dart';
 import '../services/movil_service.dart';
 import '../theme/app_theme.dart';
+import 'calendario_screen.dart';
 
 class HistorialScreen extends StatefulWidget {
   const HistorialScreen({super.key});
@@ -75,7 +76,18 @@ class _HistorialScreenState extends State<HistorialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Historial')),
+      appBar: AppBar(
+        title: const Text('Historial'),
+        actions: [
+          IconButton(
+            tooltip: 'Calendario',
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CalendarioScreen()),
+            ),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         color: AppColors.naranja,
         onRefresh: _recargar,
