@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/api_config.dart';
 import '../models/gimnasio.dart';
 import '../models/gimnasio_detalle.dart';
 import '../services/movil_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/calificar_gimnasio.dart';
 import '../widgets/comunes.dart';
+import 'escanear_qr_screen.dart';
 import 'inicio_screen.dart' show fechaLarga;
 import 'equipo_screen.dart';
 
@@ -55,6 +58,52 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
     });
   }
 
+  void _mensaje(String texto) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texto)));
+  }
+
+  /// Abre el marcador con el teléfono del gimnasio.
+  Future<void> _llamar(String telefono) async {
+    final limpio = telefono.replaceAll(RegExp(r'[^0-9+]'), '');
+    try {
+      final ok = await launchUrl(Uri(scheme: 'tel', path: limpio));
+      if (!ok) _mensaje('No se pudo abrir el marcador.');
+    } catch (_) {
+      _mensaje('No se pudo abrir el marcador.');
+    }
+  }
+
+  /// Abre Google Maps con la ruta al gimnasio (por coordenadas o por dirección).
+  Future<void> _comoLlegar(GimnasioDetalle d) async {
+    final destino = d.latitud != null && d.longitud != null
+        ? '${d.latitud},${d.longitud}'
+        : Uri.encodeComponent(d.direccionCompleta);
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$destino',
+    );
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) _mensaje('No se pudo abrir el mapa.');
+    } catch (_) {
+      _mensaje('No se pudo abrir el mapa.');
+    }
+  }
+
+  /// Abre la hoja de calificar. Si se envía, muestra aviso y recarga la ficha.
+  Future<void> _calificar(String nombre) async {
+    final enviado = await mostrarCalificarGimnasio(
+      context,
+      idGimnasio: widget.gimnasio.id,
+      nombre: nombre,
+    );
+    if (!mounted) return;
+    if (enviado) {
+      _mensaje('¡Gracias por tu reseña!');
+      _recargar();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,37 +138,61 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
           final d = snap.data!.detalle;
           final inventario = snap.data!.inventario;
           final textos = Theme.of(context).textTheme;
+          final horarioHoy = d.horarioHoy;
+          final resenasWidgets =
+              d.resenas.map((r) => _TarjetaResena(r: r)).toList();
+          final telefono = d.telefono?.trim();
 
           return ListView(
             children: [
               _Fotos(fotos: d.fotos),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ---- Encabezado ----
                     Text(
                       d.nombre,
-                      style: textos.headlineMedium?.copyWith(fontSize: 24),
+                      style: textos.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          color: Color(0xFFF59E0B),
-                          size: 20,
-                        ),
+                        const Icon(Icons.star_rounded,
+                            color: Color(0xFFF59E0B), size: 20),
                         const SizedBox(width: 4),
                         Text(
                           d.totalResenas == 0
                               ? 'Sin reseñas todavía'
                               : '${d.calificacion.toStringAsFixed(1)} · ${d.totalResenas} ${d.totalResenas == 1 ? 'reseña' : 'reseñas'}',
+                          style: textos.bodyMedium,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
+                    Text(
+                      d.direccionCompleta,
+                      style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: d.abiertoAhora ? AppColors.verde : AppColors.rojo,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          d.abiertoAhora
+                              ? 'Abierto · Hoy ${horarioHoy?.rango ?? ''}'
+                              : 'Cerrado ahora · Hoy ${horarioHoy?.rango ?? 'sin horario'}',
+                          style: textos.bodySmall,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 6,
@@ -135,15 +208,103 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
                         ),
                       ],
                     ),
-                    if (d.descripcion != null && d.descripcion!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        d.descripcion!,
-                        style: textos.bodyMedium?.copyWith(
-                          color: AppColors.textoSecundario,
+
+                    // ---- Acciones ----
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _AccionBoton(
+                            icono: Icons.near_me_outlined,
+                            texto: 'Cómo llegar',
+                            onTap: () {
+                              _comoLlegar(d);
+                            },
+                          ),
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _AccionBoton(
+                            icono: Icons.call_outlined,
+                            texto: 'Llamar',
+                            onTap: () {
+                              if (telefono == null || telefono.isEmpty) {
+                                _mensaje('Este gimnasio no tiene teléfono registrado.');
+                              } else {
+                                _llamar(telefono);
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _AccionBoton(
+                            icono: Icons.qr_code_scanner,
+                            texto: 'Escanear QR',
+                            principal: true,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const EscanearQrScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // ---- Descripción ----
+                    if (d.descripcion != null && d.descripcion!.isNotEmpty)
+                      _Seccion(
+                        titulo: 'Descripción',
+                        child: _Descripcion(texto: d.descripcion!),
                       ),
-                    ],
+
+                    // ---- Equipo (resumen) ----
+                    _Seccion(
+                      titulo: 'Equipo',
+                      child: _ResumenEquipo(
+                        grupos: inventario,
+                        nombreGimnasio: d.nombre,
+                      ),
+                    ),
+
+                    // ---- Reseñas ----
+                    _Seccion(
+                      titulo: 'Reseñas',
+                      extra: d.totalResenas > 0
+                          ? Text(
+                              'Ver las ${d.totalResenas}',
+                              style: const TextStyle(
+                                color: AppColors.naranja,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            )
+                          : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (d.resenas.isEmpty)
+                            const Text('Aún no hay reseñas de este gimnasio.'),
+                          ...resenasWidgets,
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () => _calificar(d.nombre),
+                              icon: const Icon(Icons.star_outline_rounded,
+                                  color: AppColors.naranja),
+                              label: const Text(
+                                'Calificar gimnasio →',
+                                style: TextStyle(
+                                  color: AppColors.naranja,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     // ---- Información ----
                     _Seccion(
@@ -155,15 +316,11 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
                             texto: d.direccionCompleta,
                           ),
                           if (d.telefono != null)
-                            _Fila(
-                              icono: Icons.phone_outlined,
-                              texto: d.telefono!,
-                            ),
+                            _Fila(icono: Icons.phone_outlined, texto: d.telefono!),
                           if (d.capacidadMaxima != null)
                             _Fila(
                               icono: Icons.groups_outlined,
-                              texto:
-                                  'Capacidad para ${d.capacidadMaxima} personas',
+                              texto: 'Capacidad para ${d.capacidadMaxima} personas',
                             ),
                         ],
                       ),
@@ -172,17 +329,6 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
                     // ---- Horarios ----
                     _Seccion(
                       titulo: 'Horarios',
-                      extra: d.abiertoAhora
-                          ? const Etiqueta(
-                              texto: '● Abierto ahora',
-                              fondo: Color(0x1F16A34A),
-                              color: AppColors.verde,
-                            )
-                          : const Etiqueta(
-                              texto: '● Cerrado ahora',
-                              fondo: Color(0x14DC2626),
-                              color: AppColors.rojo,
-                            ),
                       child: Column(
                         children: [
                           for (final h in d.horarios)
@@ -203,35 +349,27 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
                           children: [
                             for (final s in d.servicios)
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 6),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.check_circle,
-                                      size: 20,
-                                      color: AppColors.verde,
-                                    ),
+                                    const Icon(Icons.check_circle,
+                                        size: 20, color: AppColors.verde),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             s.nombre,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                                fontWeight: FontWeight.w600),
                                           ),
                                           if (s.descripcion != null)
                                             Text(
                                               s.descripcion!,
                                               style: textos.bodySmall?.copyWith(
-                                                color:
-                                                    AppColors.textoSecundario,
+                                                color: AppColors.textoSecundario,
                                               ),
                                             ),
                                         ],
@@ -266,27 +404,6 @@ class _DetalleGimnasioScreenState extends State<DetalleGimnasioScreen> {
                           ],
                         ),
                       ),
-
-                    // ---- Equipo (resumen) ----
-                    _Seccion(
-                      titulo: 'Equipo disponible',
-                      child: _ResumenEquipo(
-                        grupos: inventario,
-                        nombreGimnasio: d.nombre,
-                      ),
-                    ),
-
-                    // ---- Reseñas ----
-                    _Seccion(
-                      titulo: 'Reseñas',
-                      child: d.resenas.isEmpty
-                          ? const Text('Aún no hay reseñas de este gimnasio.')
-                          : Column(
-                              children: [
-                                for (final r in d.resenas) _TarjetaResena(r: r),
-                              ],
-                            ),
-                    ),
                   ],
                 ),
               ),
@@ -331,7 +448,7 @@ class _Fotos extends StatelessWidget {
       return const SizedBox(height: 200, child: SinFoto());
     }
     return SizedBox(
-      height: 200,
+      height: 220,
       child: PageView.builder(
         itemCount: fotos.length,
         itemBuilder: (context, i) {
@@ -344,6 +461,59 @@ class _Fotos extends StatelessWidget {
                   errorBuilder: (_, _, _) => const SinFoto(),
                 );
         },
+      ),
+    );
+  }
+}
+
+/// Botón cuadrado de acción (Cómo llegar, Llamar, Escanear QR).
+class _AccionBoton extends StatelessWidget {
+  final IconData icono;
+  final String texto;
+  final VoidCallback onTap;
+  final bool principal;
+  const _AccionBoton({
+    required this.icono,
+    required this.texto,
+    required this.onTap,
+    this.principal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fondo = principal ? AppColors.naranja : AppColors.blanco;
+    final color = principal ? AppColors.blanco : AppColors.texto;
+
+    return Material(
+      color: fondo,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: principal
+              ? null
+              : BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE6E6EB)),
+                ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icono, color: color, size: 22),
+              const SizedBox(height: 4),
+              Text(
+                texto,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -378,6 +548,41 @@ class _Seccion extends StatelessWidget {
           Tarjeta(child: child),
         ],
       ),
+    );
+  }
+}
+
+/// Descripción con "Ver más" / "Ver menos".
+class _Descripcion extends StatefulWidget {
+  final String texto;
+  const _Descripcion({required this.texto});
+
+  @override
+  State<_Descripcion> createState() => _DescripcionState();
+}
+
+class _DescripcionState extends State<_Descripcion> {
+  bool _expandida = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final largo = widget.texto.length > 140;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.texto,
+          maxLines: _expandida ? null : 3,
+          overflow: _expandida ? TextOverflow.visible : TextOverflow.ellipsis,
+          style: const TextStyle(color: AppColors.textoSecundario),
+        ),
+        if (largo)
+          TextButton(
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            onPressed: () => setState(() => _expandida = !_expandida),
+            child: Text(_expandida ? 'Ver menos' : 'Ver más'),
+          ),
+      ],
     );
   }
 }
@@ -510,10 +715,7 @@ class _TarjetaResena extends StatelessWidget {
                 backgroundColor: AppColors.naranjaClaro,
                 child: Text(
                   r.cliente.isNotEmpty ? r.cliente[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                    color: AppColors.naranja,
-                    fontSize: 13,
-                  ),
+                  style: const TextStyle(color: AppColors.naranja, fontSize: 13),
                 ),
               ),
               const SizedBox(width: 8),

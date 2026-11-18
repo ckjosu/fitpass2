@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../config/api_config.dart';
+import '../models/gimnasio.dart';
 import '../models/suscripcion.dart';
 import '../providers/auth_provider.dart';
 import '../services/movil_service.dart';
 import '../services/notificaciones_service.dart';
+import '../services/ubicacion_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/comunes.dart';
 import 'planes_screen.dart';
 import 'escanear_qr_screen.dart';
 import 'guia_screen.dart';
+import 'gimnasios_screen.dart';
+import 'detalle_gimnasio_screen.dart';
 import 'entreno/sesion_screen.dart';
 import '../data/rutina_demo.dart';
 
 const _meses = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
 ];
 
 /// "18 de octubre"
@@ -39,12 +35,22 @@ class InicioScreen extends StatefulWidget {
 
 class _InicioScreenState extends State<InicioScreen> {
   late Future<EstadoSuscripcion> _futuro;
+  late Future<List<GimnasioResumen>> _cercanos;
 
   @override
   void initState() {
     super.initState();
     _futuro = context.read<MovilService>().miSuscripcion();
+    _cercanos = _cargarCercanos();
     _revisarVencimiento(_futuro);
+  }
+
+  /// Los tres gimnasios más cercanos (con distancia si hay permiso de ubicación).
+  Future<List<GimnasioResumen>> _cargarCercanos() async {
+    final movil = context.read<MovilService>();
+    final pos = await UbicacionService().posicionActual();
+    final lista = await movil.gimnasios(lat: pos?.latitude, lng: pos?.longitude);
+    return lista.take(3).toList();
   }
 
   /// Programa el aviso según la fecha de vencimiento, o lo cancela si no hay suscripción.
@@ -67,6 +73,7 @@ class _InicioScreenState extends State<InicioScreen> {
     final f = context.read<MovilService>().miSuscripcion();
     setState(() {
       _futuro = f;
+      _cercanos = _cargarCercanos();
     });
     _revisarVencimiento(f);
     try {
@@ -122,12 +129,14 @@ class _InicioScreenState extends State<InicioScreen> {
           future: _futuro,
           builder: (context, snap) {
             return ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 Text(
                   'Hola, $primerNombre 👋',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 if (snap.connectionState == ConnectionState.waiting)
@@ -149,6 +158,15 @@ class _InicioScreenState extends State<InicioScreen> {
 
   List<Widget> _contenido(EstadoSuscripcion estado) {
     final s = estado.suscripcion;
+    final nivelSocio = estado.activa ? s?.plan.nivel : null;
+
+    final cercanos = _Cercanos(
+      futuro: _cercanos,
+      nivelSocio: nivelSocio,
+      onVerTodos: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const GimnasiosScreen()),
+      ),
+    );
 
     // Sin suscripción (nunca contrató o ya venció)
     if (!estado.activa || s == null) {
@@ -160,36 +178,36 @@ class _InicioScreenState extends State<InicioScreen> {
           motivo: 'Necesitas una suscripción activa para entrar a un gimnasio.',
           onEscanear: null,
         ),
+        const SizedBox(height: 28),
+        cercanos,
       ];
     }
 
     // Con suscripción
     return [
-      _TarjetaSuscripcion(s: s),
-      Align(
-        alignment: Alignment.centerRight,
-        child: TextButton(
-          onPressed: () => _abrirPlanes(idPlanActual: s.plan.id),
-          child: const Text('Cambiar de plan'),
-        ),
+      _TarjetaSuscripcion(
+        s: s,
+        onVerPlanes: () => _abrirPlanes(idPlanActual: s.plan.id),
       ),
       if (s.porVencer) ...[
+        const SizedBox(height: 12),
         _AvisoVencimiento(
           dias: s.diasRestantes,
           onRenovar: () => _abrirPlanes(idPlanActual: s.plan.id),
         ),
-        const SizedBox(height: 16),
       ],
+      const SizedBox(height: 16),
       _BotonQr(
         habilitado: s.visitasRestantesHoy > 0,
         motivo: 'Ya usaste tus visitas de hoy. Vuelve mañana.',
         onEscanear: _escanear,
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 28),
+      cercanos,
+      const SizedBox(height: 28),
       OutlinedButton.icon(
-        onPressed: () =>
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const GuiaScreen())),
+        onPressed: () => Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const GuiaScreen())),
         icon: const Icon(Icons.fitness_center),
         label: const Text('Guía de ejercicios (beta)'),
       ),
@@ -206,7 +224,6 @@ class _InicioScreenState extends State<InicioScreen> {
     ];
   }
 }
-
 
 // ------------------------------------------------------------------
 // Piezas de la pantalla
@@ -245,11 +262,7 @@ class _ErrorCarga extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
-          const Icon(
-            Icons.cloud_off,
-            size: 48,
-            color: AppColors.textoSecundario,
-          ),
+          const Icon(Icons.cloud_off, size: 48, color: AppColors.textoSecundario),
           const SizedBox(height: 12),
           Text(mensaje, textAlign: TextAlign.center),
           const SizedBox(height: 12),
@@ -263,7 +276,7 @@ class _ErrorCarga extends StatelessWidget {
   }
 }
 
-/// Tarjeta blanca con bordes redondeados.
+/// Tarjeta blanca con sombra suave.
 class _Tarjeta extends StatelessWidget {
   final Widget child;
   const _Tarjeta({required this.child});
@@ -276,11 +289,7 @@ class _Tarjeta extends StatelessWidget {
         color: AppColors.blanco,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       child: child,
@@ -290,7 +299,8 @@ class _Tarjeta extends StatelessWidget {
 
 class _TarjetaSuscripcion extends StatelessWidget {
   final Suscripcion s;
-  const _TarjetaSuscripcion({required this.s});
+  final VoidCallback onVerPlanes;
+  const _TarjetaSuscripcion({required this.s, required this.onVerPlanes});
 
   @override
   Widget build(BuildContext context) {
@@ -306,43 +316,51 @@ class _TarjetaSuscripcion extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text('Plan ${s.plan.nombre}', style: textos.titleLarge),
+              const Expanded(
+                child: Text(
+                  'TU SUSCRIPCIÓN',
+                  style: TextStyle(
+                    color: AppColors.textoSecundario,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
+                ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+              if (s.porVencer)
+                const Etiqueta(
+                  texto: 'Por vencer',
+                  fondo: Color(0x14DC2626),
+                  color: AppColors.rojo,
+                )
+              else
+                const Etiqueta(
+                  texto: '● Activa',
+                  fondo: Color(0x1F16A34A),
+                  color: AppColors.verde,
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0x1F16A34A),
-                  borderRadius: BorderRadius.circular(20),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Plan ${s.plan.nombre}',
+                  style: textos.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, size: 8, color: AppColors.verde),
-                    SizedBox(width: 6),
-                    Text(
-                      'Activa',
-                      style: TextStyle(
-                        color: AppColors.verde,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+              ),
+              TextButton(
+                onPressed: onVerPlanes,
+                child: const Text('Ver planes →'),
               ),
             ],
           ),
-          const SizedBox(height: 4),
           Text(
-            'Vence el ${fechaLarga(s.fechaFin)}',
-            style: textos.bodyMedium?.copyWith(
-              color: AppColors.textoSecundario,
-            ),
+            'Vence el ${fechaLarga(s.fechaFin)} · $textoDias',
+            style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
@@ -351,11 +369,6 @@ class _TarjetaSuscripcion extends StatelessWidget {
               color: s.porVencer ? AppColors.rojo : AppColors.naranja,
               backgroundColor: AppColors.naranjaClaro,
             ),
-          ),
-          const SizedBox(height: 6),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(textoDias, style: textos.bodySmall),
           ),
           const Divider(height: 28),
           Row(
@@ -443,10 +456,7 @@ class _AvisoVencimiento extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: AppColors.naranjaOscuro,
-          ),
+          const Icon(Icons.warning_amber_rounded, color: AppColors.naranjaOscuro),
           const SizedBox(width: 10),
           Expanded(child: Text(texto)),
           TextButton(onPressed: onRenovar, child: const Text('Renovar')),
@@ -477,9 +487,7 @@ class _SinSuscripcion extends StatelessWidget {
           Text(
             'Contrata un plan para entrar a cualquier gimnasio afiliado de la región.',
             textAlign: TextAlign.center,
-            style: textos.bodyMedium?.copyWith(
-              color: AppColors.textoSecundario,
-            ),
+            style: textos.bodyMedium?.copyWith(color: AppColors.textoSecundario),
           ),
           const SizedBox(height: 16),
           FilledButton(onPressed: onVerPlanes, child: const Text('Ver planes')),
@@ -504,10 +512,16 @@ class _BotonQr extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.icon(
-          onPressed: habilitado ? onEscanear : null,
-          icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Escanear QR'),
+        SizedBox(
+          height: 56,
+          child: FilledButton.icon(
+            onPressed: habilitado ? onEscanear : null,
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text(
+              'Escanear QR',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
         ),
         if (!habilitado) ...[
           const SizedBox(height: 8),
@@ -518,6 +532,174 @@ class _BotonQr extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Encabezado y lista de los gimnasios más cercanos.
+class _Cercanos extends StatelessWidget {
+  final Future<List<GimnasioResumen>> futuro;
+  final int? nivelSocio;
+  final VoidCallback onVerTodos;
+  const _Cercanos({
+    required this.futuro,
+    required this.nivelSocio,
+    required this.onVerTodos,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Gimnasios cercanos',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+            TextButton(onPressed: onVerTodos, child: const Text('Ver todos')),
+          ],
+        ),
+        const SizedBox(height: 4),
+        FutureBuilder<List<GimnasioResumen>>(
+          future: futuro,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.naranja),
+                ),
+              );
+            }
+            if (snap.hasError) {
+              return const Text(
+                'No pudimos cargar los gimnasios cercanos.',
+                style: TextStyle(color: AppColors.textoSecundario),
+              );
+            }
+            final lista = snap.data!;
+            if (lista.isEmpty) {
+              return const Text(
+                'Todavía no hay gimnasios afiliados.',
+                style: TextStyle(color: AppColors.textoSecundario),
+              );
+            }
+            return Column(
+              children: [
+                for (final g in lista)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _TarjetaCercano(
+                      g: g,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DetalleGimnasioScreen(
+                            gimnasio: g,
+                            nivelSocio: nivelSocio,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _TarjetaCercano extends StatelessWidget {
+  final GimnasioResumen g;
+  final VoidCallback onTap;
+  const _TarjetaCercano({required this.g, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
+    final urlFoto = ApiConfig.urlImagen(g.foto);
+
+    return Material(
+      color: AppColors.blanco,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: urlFoto == null
+                      ? const SinFoto()
+                      : Image.network(
+                          urlFoto,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SinFoto(),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      g.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textos.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 2),
+                        Text(g.calificacion > 0
+                            ? g.calificacion.toStringAsFixed(1)
+                            : 'Nuevo'),
+                        const Spacer(),
+                        if (g.distanciaKm != null)
+                          Text(
+                            '${g.distanciaKm!.toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                              color: AppColors.naranja,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        Etiqueta(
+                          texto: g.categoriaTexto,
+                          fondo: AppColors.azulClaro,
+                          color: AppColors.azul,
+                        ),
+                        etiquetaNivel(g.nivelRequerido, null),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

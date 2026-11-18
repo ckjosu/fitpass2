@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../config/api_config.dart';
 import '../models/gimnasio.dart';
 import '../models/suscripcion.dart';
@@ -73,112 +74,161 @@ class _GimnasiosScreenState extends State<GimnasiosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Gimnasios')),
-      body: Column(
-        children: [
-          // Buscador
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Buscar por nombre, colonia o ciudad',
-                prefixIcon: Icon(Icons.search),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Text(
+                'Gimnasios',
+                style: textos.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
-              onChanged: (texto) {
-                setState(() {
-                  _busqueda = texto;
-                });
-              },
             ),
-          ),
-          // Filtros por categoría
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _chip('Todos', null),
-                for (final c in categorias.entries) _chip(c.value, c.key),
-              ],
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 2, 20, 0),
+              child: Text(
+                'Tu próximo espacio para entrenar',
+                style: TextStyle(color: AppColors.textoSecundario),
+              ),
             ),
-          ),
-          // Lista
-          Expanded(
-            child: RefreshIndicator(
-              color: AppColors.naranja,
-              onRefresh: _recargar,
-              child: FutureBuilder<_Datos>(
-                future: _futuro,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: CircularProgressIndicator(color: AppColors.naranja));
-                  }
-                  if (snap.hasError) {
-                    return ListView(
-                      padding: const EdgeInsets.all(32),
-                      children: [
-                        Text(snap.error.toString(), textAlign: TextAlign.center),
-                        const SizedBox(height: 12),
-                        Center(
-                          child: OutlinedButton(
-                              onPressed: _recargar, child: const Text('Reintentar')),
-                        ),
-                      ],
-                    );
-                  }
 
-                  final datos = snap.data!;
-                  final lista = _filtrar(datos.gimnasios);
-
-                  if (lista.isEmpty) {
-                    return ListView(
-                      padding: const EdgeInsets.all(32),
-                      children: const [
-                        Icon(Icons.search_off, size: 48, color: AppColors.textoSecundario),
-                        SizedBox(height: 12),
-                        Text('No encontramos gimnasios con ese filtro.',
-                            textAlign: TextAlign.center),
-                      ],
-                    );
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                    itemCount: lista.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, i) => _TarjetaGimnasio(
-                      g: lista[i],
-                      nivelSocio: datos.nivelSocio,
-                      // Abre la ficha completa del gimnasio
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DetalleGimnasioScreen(
-                            gimnasio: lista[i],
-                            nivelSocio: datos.nivelSocio,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
+            // Buscador
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Buscar por nombre, colonia o ciudad',
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: AppColors.blanco,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (texto) {
+                  setState(() {
+                    _busqueda = texto;
+                  });
                 },
               ),
             ),
-          ),
-        ],
+
+            // Filtros por categoría
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  _chip('Todos', null),
+                  for (final c in categorias.entries) _chip(c.value, c.key),
+                ],
+              ),
+            ),
+
+            // Lista
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.naranja,
+                onRefresh: _recargar,
+                child: FutureBuilder<_Datos>(
+                  future: _futuro,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: AppColors.naranja),
+                      );
+                    }
+                    if (snap.hasError) {
+                      return ListView(
+                        padding: const EdgeInsets.all(32),
+                        children: [
+                          Text(snap.error.toString(), textAlign: TextAlign.center),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: OutlinedButton(
+                              onPressed: _recargar,
+                              child: const Text('Reintentar'),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    final datos = snap.data!;
+                    final lista = _filtrar(datos.gimnasios);
+
+                    if (lista.isEmpty) {
+                      return ListView(
+                        padding: const EdgeInsets.all(32),
+                        children: const [
+                          Icon(Icons.search_off,
+                              size: 48, color: AppColors.textoSecundario),
+                          SizedBox(height: 12),
+                          Text(
+                            'No encontramos gimnasios con ese filtro.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    }
+
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      children: [
+                        Text(
+                          '${lista.length} ${lista.length == 1 ? 'gimnasio' : 'gimnasios'} en tu zona',
+                          style: const TextStyle(color: AppColors.textoSecundario),
+                        ),
+                        const SizedBox(height: 12),
+                        for (final g in lista)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _TarjetaGimnasio(
+                              g: g,
+                              nivelSocio: datos.nivelSocio,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => DetalleGimnasioScreen(
+                                    gimnasio: g,
+                                    nivelSocio: datos.nivelSocio,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _chip(String texto, String? valor) {
+    final activo = _categoria == valor;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
         label: Text(texto),
-        selected: _categoria == valor,
+        selected: activo,
+        showCheckmark: false,
         selectedColor: AppColors.naranjaClaro,
+        backgroundColor: AppColors.blanco,
+        side: BorderSide.none,
+        labelStyle: TextStyle(
+          color: activo ? AppColors.naranjaOscuro : AppColors.texto,
+          fontWeight: FontWeight.w600,
+        ),
         onSelected: (_) {
           setState(() {
             _categoria = valor;
@@ -194,7 +244,11 @@ class _TarjetaGimnasio extends StatelessWidget {
   final int? nivelSocio;
   final VoidCallback onTap;
 
-  const _TarjetaGimnasio({required this.g, required this.nivelSocio, required this.onTap});
+  const _TarjetaGimnasio({
+    required this.g,
+    required this.nivelSocio,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -207,80 +261,80 @@ class _TarjetaGimnasio extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Foto (si no carga, se muestra un ícono)
-            SizedBox(
-              height: 140,
-              width: double.infinity,
-              child: urlFoto == null
-                  ? const SinFoto()
-                  : Image.network(
-                      urlFoto,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SinFoto(),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(g.nombre,
-                            style: textos.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                      ),
-                      const Icon(Icons.star_rounded, size: 20, color: Color(0xFFF59E0B)),
-                      const SizedBox(width: 2),
-                      Text(g.calificacion > 0 ? g.calificacion.toStringAsFixed(1) : 'Nuevo'),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 16, color: AppColors.textoSecundario),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          [g.direccion, g.ciudad].where((t) => t.isNotEmpty).join(' · '),
-                          style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 96,
+                  height: 96,
+                  child: urlFoto == null
+                      ? const SinFoto()
+                      : Image.network(
+                          urlFoto,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SinFoto(),
                         ),
-                      ),
-                      // Distancia desde tu ubicación (solo si dimos permiso de GPS)
-                      if (g.distanciaKm != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '${g.distanciaKm!.toStringAsFixed(1)} km',
-                          style: textos.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.naranja,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      Etiqueta(
-                        texto: g.categoriaTexto,
-                        fondo: AppColors.azulClaro,
-                        color: AppColors.azul,
-                      ),
-                      // Función de widgets/comunes.dart
-                      etiquetaNivel(g.nivelRequerido, nivelSocio),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      g.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textos.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      [g.direccion, g.ciudad].where((t) => t.isNotEmpty).join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textos.bodySmall?.copyWith(color: AppColors.textoSecundario),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 2),
+                        Text(g.calificacion > 0
+                            ? g.calificacion.toStringAsFixed(1)
+                            : 'Nuevo'),
+                        const Spacer(),
+                        if (g.distanciaKm != null)
+                          Text(
+                            '${g.distanciaKm!.toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                              color: AppColors.naranja,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        Etiqueta(
+                          texto: g.categoriaTexto,
+                          fondo: AppColors.azulClaro,
+                          color: AppColors.azul,
+                        ),
+                        etiquetaNivel(g.nivelRequerido, nivelSocio),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
