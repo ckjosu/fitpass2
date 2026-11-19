@@ -6,11 +6,12 @@ import { GymsService } from '../../core/gyms.service';
 import { AuthService } from '../../core/auth.service';
 import { Foto, GimnasioDetalle } from '../../core/api.config';
 import { mensajeDeError } from '../../core/auth.interceptor';
+import { MapPickerComponent, Punto } from '../../shared/map-picker/map-picker.component';
 
 @Component({
   selector: 'fp-maintenance',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MapPickerComponent],
   templateUrl: './maintenance.component.html',
   styleUrl: './maintenance.component.scss',
 })
@@ -31,6 +32,12 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   exito = '';
   fotos: Foto[] = [];
 
+  // Punto exacto en el mapa. Es lo que usa la app para ordenar por cercanía
+  // y para abrir la ruta al gimnasio.
+  latitud: number | null = null;
+  longitud: number | null = null;
+  ubicacionCambio = false;
+
   generalForm = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     categoria: ['gimnasio', Validators.required],
@@ -40,6 +47,9 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     ciudad: [''],
     codigoPostal: [''],
     descripcion: [''],
+    // Personas que caben al mismo tiempo. La app lo usa para mostrar la
+    // ocupación a los socios Plus.
+    capacidadMaxima: [null as number | null, [Validators.min(1), Validators.max(5000)]],
   });
 
   scheduleForm = this.fb.group({
@@ -85,6 +95,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       ciudad: g.ciudad || '',
       codigoPostal: g.codigoPostal || '',
       descripcion: g.descripcion || '',
+      capacidadMaxima: g.capacidadMaxima ?? null,
     });
 
     this.days.forEach((_, i) => {
@@ -96,8 +107,25 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       });
     });
 
+    this.latitud = g.latitud ?? null;
+    this.longitud = g.longitud ?? null;
+    this.ubicacionCambio = false;
+
     this.fotos = g.fotos;
     this.cargando = false;
+  }
+
+  /** Dirección escrita, para buscarla en el mapa. */
+  get direccionTexto(): string {
+    const v = this.generalForm.getRawValue();
+    return [v.calle, v.colonia, v.codigoPostal, v.ciudad, 'Mexico'].filter((x) => x && x.trim()).join(', ');
+  }
+
+  onUbicacion(p: Punto): void {
+    this.latitud = p.latitud;
+    this.longitud = p.longitud;
+    this.ubicacionCambio = true;
+    this.exito = '';
   }
 
   onSave(): void {
@@ -117,11 +145,17 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     });
 
     this.gyms
-      .guardarDatos(this.gymId, this.generalForm.getRawValue())
+      .guardarDatos(this.gymId, {
+        ...this.generalForm.getRawValue(),
+        ...(this.latitud !== null && this.longitud !== null
+          ? { latitud: this.latitud, longitud: this.longitud }
+          : {}),
+      })
       .pipe(switchMap(() => this.gyms.guardarHorarios(this.gymId, horarios)))
       .subscribe({
         next: () => {
           this.exito = 'Los cambios se guardaron correctamente.';
+          this.ubicacionCambio = false;
           this.auth.renombrarGimnasio(this.gymId, this.generalForm.getRawValue().nombre);
           this.guardando = false;
         },

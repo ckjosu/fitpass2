@@ -10,6 +10,8 @@ import { IncidentsModule } from './incidents/incidents.module';
 import { SettingsModule } from './settings/settings.module';
 import { KioskModule } from './kiosk/kiosk.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { ClassesModule } from './classes/classes.module';
 
 @Module({
   imports: [
@@ -22,6 +24,9 @@ import { InventoryModule } from './inventory/inventory.module';
       password: process.env.DB_PASSWORD || 'gymred123',
       database: process.env.DB_NAME || 'gymred',
       entities: [__dirname + '/entities{.ts,.js}'],
+      // Las columnas DATE llegan como texto 'YYYY-MM-DD'. Si se convierten a
+      // Date, la zona horaria las recorre un dia (15 de enero salia 14).
+      dateStrings: ['DATE'],
       synchronize: false, // el esquema lo crean los scripts de db/
       timezone: 'Z',
       extra: {
@@ -38,6 +43,8 @@ import { InventoryModule } from './inventory/inventory.module';
     SettingsModule,
     KioskModule,
     InventoryModule,
+    ReviewsModule,
+    ClassesModule,
   ],
 })
 export class AppModule {}

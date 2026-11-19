@@ -1,0 +1,166 @@
+<div>
+  <h1 class="fp-heading">Mis ganancias</h1>
+  <p class="subtitle">Tu precio por visita y lo que te paga la plataforma cada mes</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando tus ganancias...</p>
+
+<ng-container *ngIf="datos as d">
+  <!-- Afiliación y cómo se paga -->
+  <div class="fp-card afiliacion">
+    <div class="afiliacion-texto">
+      <span class="fp-badge fp-badge-green">Afiliación sin costo</span>
+      <h3>Tu gimnasio no paga nada por estar en la red</h3>
+      <p>
+        Por cada visita de un socio con membresía <strong>Esencial</strong> o <strong>Plus</strong> te pagamos
+        tu precio, hasta el tope de tu categoría. De cada membresía, el 70% es para los gimnasios y el 30%
+        para la plataforma; si un socio entrena muchísimo, sus visitas se pagan en proporción a ese 70%.
+        Se deposita el día 5 de cada mes.
+      </p>
+    </div>
+    <div class="afiliacion-dato">
+      <p class="label">Afiliado desde</p>
+      <p class="valor">{{ d.afiliacion.fechaInicio | date: 'd MMM y' }}</p>
+    </div>
+  </div>
+
+  <div class="fp-grid-2">
+    <!-- Precio por visita -->
+    <div class="fp-card precio">
+      <h3>Tu precio por visita</h3>
+      <p class="fp-card-sub">Lo que cobras por cada día que entra un socio de la red</p>
+
+      <ng-container *ngIf="!editandoPrecio">
+        <p class="precio-valor">{{ dinero(d.afiliacion.precioPorVisita) }}</p>
+        <p class="precio-nota">
+          Como gimnasio <strong>{{ d.clasificacion.clase }}</strong> se te puede pagar hasta
+          {{ dinero(d.clasificacion.tope) }} por visita.
+          <span *ngIf="d.afiliacion.pagoPorVisita < (d.afiliacion.precioPorVisita || 0)" class="aviso-tope">
+            Se te pagan {{ dinero(d.afiliacion.pagoPorVisita) }} porque pasa el tope.
+          </span>
+        </p>
+        <button class="fp-btn fp-btn-secondary" (click)="editarPrecio()">Cambiar precio</button>
+      </ng-container>
+
+      <ng-container *ngIf="editandoPrecio">
+        <p class="precio-nota" *ngIf="!d.afiliacion.precioPorVisita">
+          Todavía no pones tu precio. Mientras no lo pongas, las visitas de los socios no te generan pago.
+        </p>
+        <div class="precio-editar">
+          <span class="signo">$</span>
+          <input type="number" min="1" [max]="d.clasificacion.tope" step="1"
+                 [(ngModel)]="precioNuevo" placeholder="0" (keyup.enter)="guardarPrecio()" />
+          <button class="fp-btn fp-btn-primary" [disabled]="!precioValido || guardando" (click)="guardarPrecio()">
+            {{ guardando ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <button class="fp-btn fp-btn-secondary" *ngIf="d.afiliacion.precioPorVisita" (click)="cancelarPrecio()">
+            Cancelar
+          </button>
+        </div>
+        <p class="precio-nota" [class.fuera]="!!precioNuevo && precioNuevo > d.clasificacion.tope">
+          Máximo {{ dinero(d.clasificacion.tope) }} para gimnasios {{ d.clasificacion.clase }}.
+        </p>
+      </ng-container>
+    </div>
+
+    <!-- Categoría -->
+    <div class="fp-card clase">
+      <div class="clase-head">
+        <div>
+          <h3>Tu categoría</h3>
+          <p class="fp-card-sub">Sale sola de lo que tienes en tu Inventario</p>
+        </div>
+        <span class="fp-badge" [class.fp-badge-blue]="d.clasificacion.nivel === 1" [class.fp-badge-orange]="d.clasificacion.nivel === 2">
+          Gimnasio {{ d.clasificacion.clase }}
+        </span>
+      </div>
+
+      <div class="topes">
+        <div class="tope" *ngFor="let t of d.topes" [class.actual]="t.nivel === d.clasificacion.nivel">
+          <p class="tope-nombre">{{ t.nombre }}</p>
+          <p class="tope-valor">hasta {{ dinero(t.tope) }}</p>
+          <p class="tope-nota">{{ t.nivel === 1 ? 'Te visitan socios Esencial y Plus' : 'Solo te visitan socios Plus' }}</p>
+        </div>
+      </div>
+
+      <p class="clase-linea"><span>Áreas:</span> {{ d.clasificacion.areas.join(', ') || 'Ninguna' }}</p>
+
+      <div class="falta" *ngIf="d.clasificacion.faltaParaCompleto.length > 0">
+        <p class="falta-titulo">Para ser gimnasio Completo te falta:</p>
+        <ul><li *ngFor="let f of d.clasificacion.faltaParaCompleto">{{ f }}</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mes en curso -->
+  <div class="fp-grid-4">
+    <div class="fp-card stat">
+      <p class="stat-label">Visitas este mes</p>
+      <p class="stat-value">{{ d.mesActual.visitas }}</p>
+      <p class="stat-nota">{{ d.mesActual.socios }} socios distintos</p>
+    </div>
+    <div class="fp-card stat">
+      <p class="stat-label">Te pagamos por visita</p>
+      <p class="stat-value">{{ dinero(d.afiliacion.pagoPorVisita) }}</p>
+      <p class="stat-nota">Tu precio, hasta el tope de tu categoría</p>
+    </div>
+    <div class="fp-card stat">
+      <p class="stat-label">Socios nuevos</p>
+      <p class="stat-value">{{ d.mesActual.sociosNuevos }}</p>
+      <p class="stat-nota">Vinieron por primera vez este mes</p>
+    </div>
+    <div class="fp-card stat destacado">
+      <p class="stat-label">Ganancia estimada</p>
+      <p class="stat-value">{{ dinero(d.mesActual.montoNeto) }}</p>
+      <p class="stat-nota">Se deposita el {{ d.fechaPago | date: 'd \'de\' MMMM' }}</p>
+    </div>
+  </div>
+
+  <div class="fp-card">
+    <div class="calculo-head">
+      <h3>Cómo se calcula este mes</h3>
+      <span class="fp-badge fp-badge-orange">Estimado hasta el {{ d.proximoCorte | date: 'd \'de\' MMMM' }}</span>
+    </div>
+    <div class="billing-row">
+      <span>Visitas × tu precio</span><span>{{ dinero(d.mesActual.montoBruto) }}</span>
+    </div>
+    <div class="billing-row" *ngIf="d.mesActual.recorte > 0">
+      <span>Ajuste: socios que pasaron su tope del mes</span>
+      <span class="resta">− {{ dinero(d.mesActual.recorte) }}</span>
+    </div>
+    <div class="billing-row total">
+      <span>Te depositamos</span><span>{{ dinero(d.mesActual.montoNeto) }}</span>
+    </div>
+    <p class="nota-calculo">
+      El ajuste solo aplica a socios que entrenan muchísimo: cada uno tiene un tope igual al 70% de su plan
+      (Esencial $280, Plus $350). Si sus visitas del mes suman más, se reparte ese tope entre los gimnasios que visitó.
+    </p>
+  </div>
+
+  <div class="fp-card">
+    <h3>Pagos de meses anteriores</h3>
+    <p class="fp-card-sub">Se cierran el último día del mes y se pagan el día 5</p>
+
+    <p class="fp-empty" *ngIf="d.liquidaciones.length === 0">Todavía no hay pagos generados.</p>
+
+    <table class="fp-table" *ngIf="d.liquidaciones.length > 0">
+      <thead><tr><th>Periodo</th><th>Visitas</th><th>A tu precio</th><th>Ajuste</th><th>Te pagamos</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let l of d.liquidaciones">
+          <td>{{ nombreMes(l.mes) }} {{ l.anio }}</td>
+          <td>{{ l.visitas }}</td>
+          <td>{{ dinero(l.montoBruto) }}</td>
+          <td>{{ l.comision > 0 ? '− ' + dinero(l.comision) : '—' }}</td>
+          <td><strong>{{ dinero(l.montoNeto) }}</strong></td>
+          <td>
+            <span class="fp-badge" [class.fp-badge-green]="l.situacion === 'pagada'" [class.fp-badge-orange]="l.situacion !== 'pagada'">
+              {{ l.situacion | titlecase }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>

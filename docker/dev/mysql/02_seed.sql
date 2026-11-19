@@ -13,7 +13,6 @@ TRUNCATE TABLE accesos;
 TRUNCATE TABLE liquidaciones;
 TRUNCATE TABLE resenas;
 TRUNCATE TABLE solicitudes_baja;
-TRUNCATE TABLE solicitudes_plan;
 TRUNCATE TABLE precios_historial;
 TRUNCATE TABLE precios_gimnasio;
 TRUNCATE TABLE contratos_gimnasio;
@@ -103,23 +102,25 @@ INSERT INTO precios_gimnasio (id_gimnasio, concepto, monto) VALUES
 (4,'visita',100.00),(4,'semana',320.00),(4,'mes',780.00);
 
 -- ---------------------------------------------------------------------
--- CONTRATOS CON LA PLATAFORMA
--- Cada gimnasio negocia su tarifa por visita: por eso el precio unico
--- de la membresia no lo deja recibiendo menos de lo que necesita.
+-- AFILIACIONES A LA PLATAFORMA
+-- Los gimnasios no pagan nada. Cada dueno pone su precio por visita y
+-- Gymred se lo paga sin pasar el tope de su clase (Esencial $30, Plus $45).
+-- Iron House Norte pide $35 siendo Esencial: se le pagan $30.
 -- ---------------------------------------------------------------------
-INSERT INTO contratos_gimnasio (id, id_gimnasio, tipo, nivel, tarifa_por_visita, cuota_fija_mensual, comision_plataforma, fecha_inicio, situacion) VALUES
-(1, 1, 'basico',  1, 35.00,    0.00, 10.00, '2026-01-15', 'vigente'),
-(2, 2, 'basico',  1, 32.00,    0.00, 10.00, '2026-02-01', 'vigente'),
-(3, 3, 'premium', 2, 55.00, 1500.00,  8.00, '2026-01-10', 'vigente'),
-(4, 4, 'premium', 2, 48.00,  800.00,  8.00, '2026-03-05', 'vigente');
+INSERT INTO contratos_gimnasio (id, id_gimnasio, precio_por_visita, fecha_inicio, situacion) VALUES
+(1, 1, 30.00, '2026-01-15', 'vigente'),
+(2, 2, 35.00, '2026-02-01', 'vigente'),
+(3, 3, 45.00, '2026-01-10', 'vigente'),
+(4, 4, 25.00, '2026-03-05', 'vigente');
 
 -- ---------------------------------------------------------------------
 -- PLANES DE LA PLATAFORMA (para el cliente)
+-- Los gimnasios se clasifican con estos mismos niveles.
+-- Esencial entra a gimnasios Esencial; Plus entra a todos.
 -- ---------------------------------------------------------------------
-INSERT INTO planes_plataforma (id, nombre, descripcion, precio_mensual, nivel, visitas_por_dia, visitas_por_mes) VALUES
-(1, 'Basico', 'Acceso a gimnasios nivel 1, una visita por dia.',              399.00, 1, 1, 20),
-(2, 'Plus',   'Acceso a gimnasios nivel 1 y 2, una visita por dia.',          699.00, 2, 1, 30),
-(3, 'Elite',  'Acceso a todos los gimnasios, hasta dos visitas por dia.',     999.00, 3, 2, NULL);
+INSERT INTO planes_plataforma (id, nombre, descripcion, precio_mensual, nivel, tope_por_visita, visitas_por_dia, visitas_por_mes) VALUES
+(1, 'Esencial', 'Gimnasios Esencial de la red, una visita por dia.',                                   400.00, 1, 30.00, 1, NULL),
+(2, 'Plus',     'Todos los gimnasios, incluidos los Plus, dos visitas por dia, ocupacion y recomendaciones.', 500.00, 2, 45.00, 2, NULL);
 
 -- ---------------------------------------------------------------------
 -- SUSCRIPCIONES Y PAGOS
@@ -127,14 +128,14 @@ INSERT INTO planes_plataforma (id, nombre, descripcion, precio_mensual, nivel, v
 INSERT INTO suscripciones (id, id_cliente, id_plan, fecha_inicio, fecha_fin, situacion) VALUES
 (1, 4, 2, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'activa'),
 (2, 5, 1, DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'activa'),
-(3, 6, 3, DATE_SUB(CURDATE(), INTERVAL  5 DAY), DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'activa'),
+(3, 6, 2, DATE_SUB(CURDATE(), INTERVAL  5 DAY), DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'activa'),
 (4, 7, 1, DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY), 'vencida');
 
-INSERT INTO pagos (id_suscripcion, monto, metodo, referencia, situacion) VALUES
-(1, 699.00, 'tarjeta',      'FP-2026-0001', 'pagado'),
-(2, 399.00, 'tarjeta',      'FP-2026-0002', 'pagado'),
-(3, 999.00, 'transferencia','FP-2026-0003', 'pagado'),
-(4, 399.00, 'efectivo',     'FP-2026-0004', 'pagado');
+INSERT INTO pagos (id_suscripcion, monto, metodo, referencia, situacion, pagado_en) VALUES
+(1, 500.00, 'tarjeta',      'FP-2026-0001', 'pagado', NOW()),
+(2, 400.00, 'tarjeta',      'FP-2026-0002', 'pagado', NOW()),
+(3, 500.00, 'transferencia','FP-2026-0003', 'pagado', NOW()),
+(4, 400.00, 'efectivo',     'FP-2026-0004', 'pagado', DATE_SUB(NOW(), INTERVAL 60 DAY));
 
 -- ---------------------------------------------------------------------
 -- CREDENCIALES (solo QR del celular, ya no hay tarjetas)
@@ -158,11 +159,11 @@ INSERT INTO lectores (id, id_gimnasio, numero_serie, ubicacion, api_key_hash, ac
 
 -- ---------------------------------------------------------------------
 -- BITACORA DE ACCESOS (ultimos dias, permitidos y denegados)
--- Mauricio tiene plan Elite (2 visitas/dia) y solo una visita de hoy, para poder
+-- Mauricio tiene plan Plus (2 visitas/dia) y solo una visita de hoy, para poder
 -- demostrar en vivo un acceso permitido y luego el limite diario con el mismo socio.
 -- ---------------------------------------------------------------------
 INSERT INTO accesos (id_gimnasio, id_lector, id_cliente, id_credencial, codigo_leido, resultado, motivo, registrado_en) VALUES
-(1,1,4,1,'QR-ERICK-8F3A21C7','permitido',NULL, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+(1,1,4,1,'QR-ERICK-8F3A21C7','permitido',NULL, DATE_SUB(NOW(), INTERVAL 40 MINUTE)),
 (1,1,5,2,'QR-LUIS-4D2E77B1','permitido',NULL, DATE_SUB(NOW(), INTERVAL 3 HOUR)),
 (1,1,6,3,'QR-MAURI-1B7C93D2','permitido',NULL, DATE_SUB(NOW(), INTERVAL 5 HOUR)),
 (1,1,7,4,'QR-TOMMY-9A0F62E5','denegado','Sin suscripcion vigente', DATE_SUB(NOW(), INTERVAL 6 HOUR)),
@@ -171,7 +172,7 @@ INSERT INTO accesos (id_gimnasio, id_lector, id_cliente, id_credencial, codigo_l
 (2,2,5,2,'QR-LUIS-4D2E77B1','permitido',NULL, DATE_SUB(NOW(), INTERVAL 1 DAY)),
 (3,3,6,3,'QR-MAURI-1B7C93D2','permitido',NULL, DATE_SUB(NOW(), INTERVAL 30 HOUR)),
 (3,3,4,1,'QR-ERICK-8F3A21C7','permitido',NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(3,3,5,2,'QR-LUIS-4D2E77B1','denegado','Tu plan no incluye este gimnasio', DATE_SUB(NOW(), INTERVAL 8 HOUR)),
+(3,3,5,2,'QR-LUIS-4D2E77B1','denegado','Tu plan Esencial no incluye gimnasios Plus', DATE_SUB(NOW(), INTERVAL 8 HOUR)),
 (3,3,4,1,'QR-ERICK-8F3A21C7','denegado','Ya registraste tu visita de hoy', DATE_SUB(NOW(), INTERVAL 2 DAY)),
 (4,4,6,3,'QR-MAURI-1B7C93D2','permitido',NULL, DATE_SUB(NOW(), INTERVAL 3 DAY)),
 (1,1,4,1,'QR-ERICK-8F3A21C7','permitido',NULL, DATE_SUB(NOW(), INTERVAL 4 DAY)),
@@ -187,13 +188,20 @@ INSERT INTO accesos (id_gimnasio, id_lector, id_cliente, id_credencial, codigo_l
 (3,3,4,1,'QR-ERICK-8F3A21C7','permitido',NULL, DATE_SUB(NOW(), INTERVAL 38 DAY)),
 (2,2,5,2,'QR-LUIS-4D2E77B1','permitido',NULL, DATE_SUB(NOW(), INTERVAL 45 DAY));
 
+-- Lo que se le debe al gimnasio por cada visita permitida: su precio
+-- sin pasar el tope de su clase (Energy Fitness es Plus, los demas Esencial).
+UPDATE accesos a JOIN contratos_gimnasio c ON c.id_gimnasio = a.id_gimnasio
+SET a.pago_gimnasio = LEAST(c.precio_por_visita, IF(a.id_gimnasio = 3, 45.00, 30.00))
+WHERE a.resultado = 'permitido';
+
 -- ---------------------------------------------------------------------
 -- LIQUIDACIONES DEL MES PASADO
+-- bruto = visitas x precio del dueno, comision = lo que recorto el tope.
 -- ---------------------------------------------------------------------
 INSERT INTO liquidaciones (id_gimnasio, anio, mes, visitas, monto_bruto, comision, monto_neto, situacion) VALUES
-(1, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 3, 105.00, 10.50,  94.50, 'pagada'),
-(2, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 1,  32.00,  3.20,  28.80, 'pagada'),
-(3, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 2, 110.00,  8.80, 101.20, 'pendiente');
+(1, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 3,  90.00,  0.00,  90.00, 'pagada'),
+(2, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 1,  35.00,  5.00,  30.00, 'pagada'),
+(3, YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)), 2,  90.00,  0.00,  90.00, 'pendiente');
 
 -- ---------------------------------------------------------------------
 -- RESENAS
@@ -204,12 +212,6 @@ INSERT INTO resenas (id_gimnasio, id_cliente, calificacion, comentario) VALUES
 (3, 6, 5, 'La alberca vale mucho la pena, excelente servicio.'),
 (3, 4, 4, 'Las clases de crossfit estan muy completas.'),
 (4, 6, 5, 'Los coaches de box explican muy bien.');
-
--- ---------------------------------------------------------------------
--- SOLICITUDES
--- ---------------------------------------------------------------------
-INSERT INTO solicitudes_plan (id_gimnasio, tipo_actual, tipo_solicitado, mensaje, situacion) VALUES
-(2, 'basico', 'premium', 'Queremos subir de plan para tener reportes avanzados.', 'pendiente');
 
 -- ---------------------------------------------------------------------
 -- INCIDENCIAS (reportes de mantenimiento)

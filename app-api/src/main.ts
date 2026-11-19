@@ -37,12 +37,14 @@ async function bootstrap() {
     .addTag('auth', 'Autenticacion de duenos y clientes')
     .addTag('gimnasios', 'Panel web: datos, horarios, fotos, servicios y amenidades')
     .addTag('precios', 'Panel web: precios propios del gimnasio')
-    .addTag('contrato', 'Panel web: plan Gymred, liquidaciones y baja')
+    .addTag('contrato', 'Panel web: afiliacion sin costo, clase del gimnasio, precio por visita, ganancias y baja')
     .addTag('accesos', 'Panel web: dashboard, historial y reportes')
     .addTag('pantalla', 'Pantalla de acceso: genera el QR que escanea el socio')
     .addTag('inventario', 'Panel web: equipo y actividades del gimnasio')
     .addTag('incidencias', 'Panel web: reportes de mantenimiento')
     .addTag('configuracion', 'Panel web: preferencias del panel y del lector')
+    .addTag('resenas', 'Panel web: calificacion, comentarios y respuestas del dueno')
+    .addTag('clases', 'Panel web: clases con horario semanal, cupo e inscritos')
     .addTag('movil', 'Endpoints de la app movil (clientes)')
     .build();
 

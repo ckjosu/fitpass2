@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ContratoGimnasio, Gimnasio, Liquidacion, SolicitudBaja, SolicitudPlan } from '../entities';
+import { ContratoGimnasio, Gimnasio, Liquidacion, SolicitudBaja } from '../entities';
 import { ContractsService } from './contracts.service';
 import { ContractsController } from './contracts.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ContratoGimnasio, SolicitudPlan, SolicitudBaja, Liquidacion, Gimnasio]),
+    // Gimnasio lo usa el guard que revisa que seas el dueno.
+    TypeOrmModule.forFeature([ContratoGimnasio, SolicitudBaja, Liquidacion, Gimnasio]),
   ],
   controllers: [ContractsController],
   providers: [ContractsService],

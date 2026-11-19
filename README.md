@@ -72,9 +72,9 @@ MySQL solo entiende SQL.
 | # | Prueba | Resultado esperado |
 |---|---|---|
 | 1 | Abrir http://localhost:4200 | Carga la pantalla de inicio de sesión de Gymred |
-| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Básico, Plus y Elite |
+| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400) y Plus ($500) |
 | 3 | Abrir http://localhost:8080 | Entra phpMyAdmin con usuario `gymred` y contraseña `gymred123` |
-| 4 | En phpMyAdmin revisar la base `gymred` | Aparecen las 22 tablas y las 2 vistas |
+| 4 | En phpMyAdmin revisar la base `gymred` | Aparecen las tablas y las 2 vistas (ya no existe `solicitudes_plan`) |
 | 5 | Iniciar sesión con `ricardo@ironhouse.mx` / `Gymred123` | Entra al panel y muestra el resumen del gimnasio |
 | 6 | Cambiar un precio y recargar | El precio nuevo persiste y el cambio aparece en el historial |
 | 7 | Apagar y volver a levantar sin `-v` | Los datos siguen ahí (persistencia por volumen) |
@@ -92,7 +92,7 @@ En el Sprint 1 el panel publicaba solo cuatro pantallas. **En el Sprint 2 ya se
 publican todas**, porque `SOLO_SPRINT_1` está en `false`.
 
 El resto del panel (Pantalla de acceso, Accesos, Reportes, Mantenimiento, Planes y
-precios, Plan Gymred, Configuración y Baja) **sigue completo en el proyecto**: sus
+Clases, Reseñas, Mis ganancias, Configuración y Baja) **sigue completo en el proyecto**: sus
 carpetas, servicios y endpoints no se eliminaron. Simplemente no se registran en las
 rutas ni aparecen en el menú.
 
@@ -188,8 +188,9 @@ Diferencias con desarrollo:
 | ricardo@ironhouse.mx | dueño, 2 gimnasios | Gymred123 |
 | marisol@energymx.mx | dueña, 2 gimnasios | Gymred123 |
 | erick@correo.com | socio, plan Plus | Gymred123 |
-| luis@correo.com | socio, plan Básico | Gymred123 |
-| mauricio@correo.com | socio, plan Elite | Gymred123 |
+| luis@correo.com | socio, plan Esencial | Gymred123 |
+| mauricio@correo.com | socio, plan Plus | Gymred123 |
+| ana@correo.com | socia, plan Esencial | Gymred123 |
 | tommy@correo.com | socio con suscripción vencida | Gymred123 |
 
 En phpMyAdmin: servidor `mysql`, usuario `gymred`, contraseña `gymred123`.
@@ -200,15 +201,16 @@ En phpMyAdmin: servidor `mysql`, usuario `gymred`, contraseña `gymred123`.
 
 | Pantalla | Qué resuelve |
 |---|---|
-| Resumen | Accesos del día y del mes, ingreso estimado, avisos pendientes |
+| Resumen | Accesos del día y del mes, socios nuevos, ganancia estimada, avisos pendientes |
 | Pantalla de acceso | Genera el QR que se proyecta en la entrada, con modo pantalla completa |
 | Accesos | Historial con filtros por fecha, resultado y búsqueda |
 | Reportes | Visitas por mes y por día, socios más frecuentes, motivos de rechazo |
 | Datos del gimnasio | Información general, horarios y fotos |
 | Inventario | Equipo y actividades; es lo que el socio ve en la app |
-| Planes y precios | Precios propios del gimnasio, con historial automático |
+| Clases | Horario semanal de clases con cupo; los socios reservan en la app y aquí se ven los inscritos |
+| Reseñas | Calificación promedio, distribución por estrellas y respuestas del dueño (salen en la app) |
 | Mantenimiento | Reportes de averías del equipo, con prioridad y seguimiento |
-| Plan Gymred | Contrato con la plataforma, facturación y liquidaciones |
+| Mis ganancias | Afiliación sin costo, precio por visita (con tope), clase del gimnasio, ganancia del mes y pagos anteriores |
 | Configuración | Tema, color de acento, vigencia del QR y avisos |
 
 ## 8. Cómo entra un socio
@@ -221,9 +223,42 @@ Que el código dure poco importa: si alguien le toma foto a la pantalla, esa fot
 servir casi enseguida.
 
 La API revisa, en orden: que el código sea de una pantalla real y activa, que no esté
-vencido, que el socio tenga suscripción vigente, que el nivel de su plan alcance el del
-gimnasio, y que no haya pasado su límite de visitas del día ni del mes. Todo intento
+vencido, que el socio tenga suscripción vigente, que el gimnasio siga afiliado, que su
+plan alcance la clase del gimnasio (Esencial o Plus), y que no haya pasado su límite de visitas del día ni del mes. Todo intento
 queda registrado, se permita o no.
+
+## 8.1 Modelo de negocio (Modelo Canvas FITNEX, pago tipo Wellhub)
+
+Los gimnasios **no pagan nada**. Los socios pagan su membresía y la plataforma les
+paga a los gimnasios por las visitas: **30% para FITNEX y 70% para gimnasios**.
+
+**Membresías del socio**
+
+| Membresía | Precio | Entra a | Visitas |
+|---|---|---|---|
+| Esencial | $400 | Todos los gimnasios Esencial | 12 al mes, 1 al día |
+| Plus | $500 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 12 al mes, 1 al día |
+
+**Categorías de gimnasio** (salen solas del inventario, tabla `categorias_gimnasio`):
+Esencial (tope $30 por visita) y Completo (peso libre + máquinas + cardio, tope $45).
+
+**Cómo se paga** (`app-api/src/common/tarifas.ts`):
+
+```
+fondo del socio = 70% de su membresía        (Esencial $280, Plus $350)
+pago por visita = precio del gimnasio, sin pasar el tope de su categoría
+total del socio = suma de sus pagos por visita del mes
+si total > fondo: cada visita se paga × (fondo / total)
+```
+
+FITNEX nunca paga más del 70% de lo que cobró; lo que no se usa del fondo se queda
+en FITNEX. Se cierra el último día del mes (`POST /api/contrato/cierre/:anio/:mes`,
+solo admin) y se paga el día 5. El admin ve las cuentas de la plataforma en
+`GET /api/contrato/fitnex/:anio/:mes`.
+
+Para una base que ya estaba en uso se corren una sola vez, en orden,
+`05_modelo_sin_cuota.sql`, `06_clases_y_resenas.sql` y `08_modelo_wellhub.sql`.
+Los archivos `07_...` y `09_...` solo traen datos de prueba.
 
 ---
 

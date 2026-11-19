@@ -5,6 +5,10 @@ import {
   Acceso, ContratoGimnasio, Gimnasio, Lector, PlanPlataforma, Suscripcion,
 } from '../entities';
 import { FiltroHistorialDto } from './access.dto';
+import { clasificar, pagoDelGimnasio, pagoPorVisita } from '../common/tarifas';
+
+/** Minutos que se queda en promedio un socio; sirve para estimar quien sigue dentro. */
+export const ESTANCIA_MINUTOS = 90;
 
 interface Respuesta {
   permitido: boolean;
@@ -33,6 +37,7 @@ export class AccessService {
     resultado: 'permitido' | 'denegado',
     motivo?: string,
     idCliente?: number,
+    pago?: number,
   ) {
     await this.accesos.save(
       this.accesos.create({
@@ -42,6 +47,7 @@ export class AccessService {
         codigoLeido: codigo,
         resultado,
         motivo: motivo ?? null,
+        pagoGimnasio: pago ?? null,
       }),
     );
   }
@@ -85,15 +91,25 @@ export class AccessService {
     }
 
     const plan = await this.planes.findOne({ where: { id: suscripcion.idPlan } });
-    const contrato = await this.contratos.findOne({
+
+    // 4. El gimnasio debe seguir afiliado
+    const afiliado = await this.contratos.findOne({
       where: { idGimnasio: gym, situacion: 'vigente' },
     });
-
-    // 4. El nivel del plan debe alcanzar el nivel del gimnasio
-    if (contrato && plan.nivel < contrato.nivel) {
+    if (!afiliado) {
       await this.registrar(gym, pantalla.id, codigo, 'denegado',
-        'Tu plan no incluye este gimnasio', idCliente);
-      return { permitido: false, motivo: 'Tu plan no incluye este gimnasio', plan: plan.nombre };
+        'Este gimnasio ya no esta afiliado', idCliente);
+      return { permitido: false, motivo: 'Este gimnasio ya no esta afiliado', plan: plan.nombre };
+    }
+
+    // 4.1 El plan tiene que incluir este gimnasio:
+    //     Esencial -> gimnasios Esencial
+    //     Plus     -> Esencial y Completo
+    const clase = await clasificar(this.accesos.manager, gym);
+    if (plan.nivel < clase.nivel) {
+      const motivo = `Tu plan ${plan.nombre} no incluye gimnasios ${clase.clase}`;
+      await this.registrar(gym, pantalla.id, codigo, 'denegado', motivo, idCliente);
+      return { permitido: false, motivo, plan: plan.nombre };
     }
 
     // 5. Limite de visitas por dia
@@ -124,14 +140,17 @@ export class AccessService {
         .getCount();
 
       if (visitasMes >= plan.visitasPorMes) {
-        await this.registrar(gym, pantalla.id, codigo, 'denegado',
-          'Alcanzaste el limite de visitas del mes', idCliente);
-        return { permitido: false, motivo: 'Alcanzaste el limite de visitas del mes', plan: plan.nombre };
+        const motivo = `Ya usaste tus ${plan.visitasPorMes} visitas del mes`;
+        await this.registrar(gym, pantalla.id, codigo, 'denegado', motivo, idCliente);
+        return { permitido: false, motivo, plan: plan.nombre };
       }
     }
 
-    // 7. Pase
-    await this.registrar(gym, pantalla.id, codigo, 'permitido', null, idCliente);
+    // 7. Pase. Se guarda lo que vale esta visita para el gimnasio: su precio
+    //    sin pasar el tope de su categoria. Al cierre del mes se revisa que
+    //    el socio no pase su fondo.
+    const pago = pagoPorVisita(afiliado.precioPorVisita, clase.tope);
+    await this.registrar(gym, pantalla.id, codigo, 'permitido', null, idCliente, pago);
 
     const gimnasio = await this.gimnasios.findOne({ where: { id: gym } });
     const cliente = await this.accesos.manager.query(
@@ -151,7 +170,7 @@ export class AccessService {
   /** Cifras y grafica del dashboard. */
   async resumen(idGimnasio: number) {
     const gimnasio = await this.gimnasios.findOne({ where: { id: idGimnasio } });
-    const contrato = await this.contratos.findOne({
+    const afiliacion = await this.contratos.findOne({
       where: { idGimnasio, situacion: 'vigente' },
     });
 
@@ -190,10 +209,12 @@ export class AccessService {
     const lectores = await this.lectores.find({ where: { idGimnasio } });
 
     const accesosMes = Number(conteos.accesos_mes || 0);
-    const tarifa = contrato ? Number(contrato.tarifaPorVisita) : 0;
-    const cuota = contrato ? Number(contrato.cuotaFijaMensual) : 0;
-    const comision = contrato ? Number(contrato.comisionPlataforma) : 0;
-    const bruto = accesosMes * tarifa + cuota;
+    const hoy = new Date();
+    const precio = afiliacion ? afiliacion.precioPorVisita : null;
+    const clase = await clasificar(this.accesos.manager, idGimnasio);
+    const ganancia = await pagoDelGimnasio(
+      this.accesos.manager, idGimnasio, hoy.getFullYear(), hoy.getMonth() + 1,
+    );
 
     return {
       gimnasio: { id: gimnasio.id, nombre: gimnasio.nombre, situacion: gimnasio.situacion },
@@ -201,10 +222,12 @@ export class AccessService {
       denegadosHoy: Number(conteos.denegados_hoy || 0),
       accesosMes,
       clientesMes: Number(conteos.clientes_mes || 0),
-      ingresoEstimadoMes: Number((bruto - (bruto * comision) / 100).toFixed(2)),
-      contrato: contrato
-        ? { tipo: contrato.tipo, tarifaPorVisita: tarifa, comision }
-        : null,
+      // Lo que Gymred le debe al gimnasio por las visitas del mes.
+      ingresoEstimadoMes: ganancia.montoNeto,
+      pagoPorVisita: pagoPorVisita(precio, clase.tope),
+      precioPorVisita: precio,
+      clase: clase.clase,
+      sociosNuevosMes: ganancia.sociosNuevos,
       porHora: porHora.map((r: any) => ({ hora: Number(r.hora), visitas: Number(r.visitas) })),
       ultimosAccesos: ultimos,
       lectores: lectores.map((l) => ({
@@ -214,6 +237,61 @@ export class AccessService {
         ultimaConexion: l.ultimaConexion,
       })),
     };
+  }
+
+  /**
+   * Ocupacion y aforo. No hay registro de salida, asi que "dentro ahora"
+   * son las entradas de los ultimos ESTANCIA_MINUTOS minutos.
+   */
+  async ocupacion(idGimnasio: number) {
+    const gimnasio = await this.gimnasios.findOne({ where: { id: idGimnasio } });
+
+    const [ahora] = await this.accesos.manager.query(
+      `SELECT COUNT(*) AS dentro FROM accesos
+       WHERE id_gimnasio = ? AND resultado = 'permitido'
+         AND registrado_en >= DATE_SUB(NOW(), INTERVAL ? MINUTE)`,
+      [idGimnasio, ESTANCIA_MINUTOS],
+    );
+
+    // Promedio de entradas por hora del mismo dia de la semana, ultimas 8 semanas.
+    const porHora = await this.accesos.manager.query(
+      `SELECT HOUR(registrado_en) AS hora,
+              COUNT(*) / COUNT(DISTINCT DATE(registrado_en)) AS promedio
+       FROM accesos
+       WHERE id_gimnasio = ? AND resultado = 'permitido'
+         AND DAYOFWEEK(registrado_en) = DAYOFWEEK(CURDATE())
+         AND registrado_en >= DATE_SUB(CURDATE(), INTERVAL 56 DAY)
+       GROUP BY HOUR(registrado_en) ORDER BY hora`,
+      [idGimnasio],
+    );
+
+    const [hoy] = await this.accesos.manager.query(
+      `SELECT COUNT(*) AS entradas FROM accesos
+       WHERE id_gimnasio = ? AND resultado = 'permitido' AND DATE(registrado_en) = CURDATE()`,
+      [idGimnasio],
+    );
+
+    const capacidad = gimnasio?.capacidadMaxima || null;
+    const dentro = Number(ahora.dentro || 0);
+    const porcentaje = capacidad ? Math.min(100, Math.round((dentro / capacidad) * 100)) : null;
+    const horas = porHora.map((r: any) => ({ hora: Number(r.hora), promedio: Number(Number(r.promedio).toFixed(1)) }));
+    const pico = horas.reduce((a: any, b: any) => (!a || b.promedio > a.promedio ? b : a), null);
+
+    return {
+      capacidadMaxima: capacidad,
+      dentroAhora: dentro,
+      porcentaje,
+      nivel: porcentaje === null ? 'sin_dato' : porcentaje < 40 ? 'tranquilo' : porcentaje < 75 ? 'moderado' : 'lleno',
+      estanciaMinutos: ESTANCIA_MINUTOS,
+      entradasHoy: Number(hoy.entradas || 0),
+      horaPico: pico ? pico.hora : null,
+      porHora: horas,
+    };
+  }
+
+  async guardarCapacidad(idGimnasio: number, capacidad: number) {
+    await this.gimnasios.update({ id: idGimnasio }, { capacidadMaxima: capacidad });
+    return this.ocupacion(idGimnasio);
   }
 
   /** Historial con filtros y paginacion. */

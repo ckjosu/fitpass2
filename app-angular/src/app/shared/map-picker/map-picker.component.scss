@@ -1,0 +1,50 @@
+:host { display: block; }
+
+.mapa-barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.mapa-barra .fp-btn { padding: 8px 14px; font-size: 13px; }
+.mapa-ayuda { font-size: 12.5px; color: var(--fp-gray-mid); }
+
+.mapa {
+  height: 340px;
+  border-radius: 14px;
+  border: 1px solid var(--fp-gray-border);
+  overflow: hidden;
+  z-index: 0; /* que los controles del mapa no tapen el menú */
+  cursor: crosshair;
+}
+
+.mapa-pie { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+.coordenadas { font-family: ui-monospace, 'SF Mono', Menlo, monospace; color: var(--fp-carbon); }
+.sin-punto { color: var(--fp-warn-ink); font-weight: 600; }
+.aviso { color: var(--fp-gray-mid); }
+
+/* El pin vive fuera del componente (lo dibuja Leaflet), por eso ::ng-deep. */
+::ng-deep .fp-pin { background: none; border: none; }
+::ng-deep .fp-pin-cuerpo {
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--fp-orange);
+  border: 3px solid #fff;
+  transform: rotate(-45deg);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+::ng-deep .fp-pin-cuerpo::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #fff;
+}
+::ng-deep .fp-pin-sombra {
+  position: absolute;
+  left: 9px;
+  top: 31px;
+  width: 12px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+}

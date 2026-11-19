@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_URL, RespuestaContrato } from './api.config';
 
 @Injectable({ providedIn: 'root' })
+/** Afiliacion del gimnasio: precio por visita, ganancias y baja. */
 export class ContractService {
   private http = inject(HttpClient);
 
@@ -11,8 +12,8 @@ export class ContractService {
     return this.http.get<RespuestaContrato>(`${API_URL}/contrato/${gymId}`);
   }
 
-  solicitarCambio(gymId: number, tipoSolicitado: string, mensaje?: string): Observable<unknown> {
-    return this.http.post(`${API_URL}/contrato/${gymId}/solicitud-plan`, { tipoSolicitado, mensaje });
+  guardarPrecio(gymId: number, precio: number): Observable<RespuestaContrato> {
+    return this.http.put<RespuestaContrato>(`${API_URL}/contrato/${gymId}/precio`, { precio });
   }
 
   solicitarBaja(gymId: number, motivo: string, comentario?: string): Observable<unknown> {

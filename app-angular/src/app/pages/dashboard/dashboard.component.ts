@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
 import { AccessService } from '../../core/access.service';
 import { AuthService } from '../../core/auth.service';
-import { ContractService } from '../../core/contract.service';
 import { IncidentsService } from '../../core/incidents.service';
 import { Resumen } from '../../core/api.config';
 import { mensajeDeError } from '../../core/auth.interceptor';
@@ -34,19 +33,16 @@ interface BarraHora {
 export class DashboardComponent implements OnInit, OnDestroy {
   private accesos = inject(AccessService);
   private auth = inject(AuthService);
-  private contratos = inject(ContractService);
   private incidencias = inject(IncidentsService);
   private subs: Subscription[] = [];
 
   // Avisos de la parte de arriba
-  diasParaVencer: number | null = null;
-  fechaVencimiento = '';
   reportesPendientes = 0;
   equiposConFalla = '';
 
-  // Los avisos llevan a Plan y a Mantenimiento; si esas pantallas no están
-  // publicadas en este sprint, no se muestran para no dejar botones muertos.
-  mostrarAvisoPlan = enSprint('plan');
+  // El aviso lleva a Mantenimiento; si esa pantalla no está publicada en
+  // este sprint, no se muestra para no dejar botones muertos.
+  // (Ya no hay aviso de renovación: el gimnasio no paga ningún plan.)
   mostrarAvisoMantenimiento = enSprint('incidents');
 
   cargando = true;
@@ -57,20 +53,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Se vuelve a pedir el resumen cada vez que cambias de sucursal en el topbar.
-    this.subs.push(
-      this.auth.gimnasioActual$
-        .pipe(switchMap((id) => this.contratos.ver(Number(id))))
-        .subscribe({
-          next: (c) => {
-            const vence = new Date(c.facturacion.proximoVencimiento + 'T00:00:00');
-            const dias = Math.ceil((vence.getTime() - Date.now()) / 86400000);
-            this.diasParaVencer = dias >= 0 ? dias : null;
-            this.fechaVencimiento = c.facturacion.proximoVencimiento;
-          },
-          error: () => (this.diasParaVencer = null),
-        }),
-    );
-
     this.subs.push(
       this.auth.gimnasioActual$
         .pipe(switchMap((id) => this.incidencias.lista(Number(id), 'pendiente')))
@@ -103,18 +85,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private armarStats(r: Resumen): StatCard[] {
-    const tarifa = r.contrato ? r.contrato.tarifaPorVisita : 0;
     return [
       {
         label: 'Accesos del mes',
         value: String(r.accesosMes),
-        nota: r.clientesMes + ' socios distintos',
+        nota: r.clientesMes + ' socios distintos · ' + r.sociosNuevosMes + ' nuevos',
         tono: 'azul',
       },
       {
-        label: 'Ingreso estimado del mes',
+        label: 'Ganancia estimada del mes',
         value: '$' + r.ingresoEstimadoMes.toLocaleString('es-MX'),
-        nota: 'A $' + tarifa + ' por visita',
+        nota: r.precioPorVisita
+          ? 'A $' + r.pagoPorVisita.toLocaleString('es-MX') + ' por visita · gimnasio ' + r.clase
+          : 'Pon tu precio por visita en Mis ganancias',
         tono: 'naranja',
       },
       {

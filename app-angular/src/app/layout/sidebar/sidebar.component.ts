@@ -90,13 +90,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       items: [
         { path: '/maintenance', label: 'Datos del gimnasio', icono: 'M3 21h18M5 21V8l7-4 7 4v13M10 21v-6h4v6' },
         { path: '/inventory', label: 'Inventario', icono: 'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10' },
-        { path: '/pricing', label: 'Planes y precios', icono: 'M3 9h18M3 9l2-4h14l2 4M3 9v10h18V9M9 14h6' },
+        { path: '/clases', label: 'Clases', icono: 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 18h3' },
+        { path: '/resenas', label: 'Reseñas', icono: 'M12 3l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.2l5.9-.9z' },
       ],
     },
     {
       titulo: 'Cuenta',
       items: [
-        { path: '/plan', label: 'Plan Gymred', icono: 'M12 3l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.2l5.9-.9z' },
+        { path: '/ganancias', label: 'Mis ganancias', icono: 'M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
         { path: '/settings', label: 'Configuración', icono: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1A1.6 1.6 0 007.9 19.4l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.6 1.6 0 003 13.9H3a2 2 0 110-4h.1A1.6 1.6 0 004.6 7.9l-.1-.1a2 2 0 112.8-2.8l.1.1A1.6 1.6 0 0010 4.6V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z' },
       ],
     },
@@ -125,8 +126,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.auth.gimnasioActual$
         .pipe(switchMap((id) => this.contratos.ver(Number(id))))
         .subscribe({
-          next: (r) => (this.plan = 'Plan ' + r.contrato.nombre),
-          error: () => (this.plan = 'Sin contrato'),
+          next: (r) => (this.plan = 'Gimnasio ' + r.clasificacion.clase),
+          error: () => (this.plan = 'Sin afiliación'),
         }),
     );
   }

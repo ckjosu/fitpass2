@@ -13,6 +13,7 @@
     <ul>
       <li>Se desactivará el lector de acceso de tu gimnasio.</li>
       <li>Tus socios ya no podrán entrar con su suscripción Gymred.</li>
+      <li>Dejarás de recibir socios nuevos y los pagos por visita de Gymred.</li>
       <li>Perderás el acceso a este panel y al historial de accesos e ingresos.</li>
     </ul>
   </div>
@@ -31,9 +32,10 @@
 
   <div class="fp-card">
     <h3>Estado actual</h3>
-    <div class="summary-row"><span>Plan contratado</span><span>{{ d.contrato.nombre }}</span></div>
-    <div class="summary-row"><span>Vence el</span><span>{{ d.facturacion.proximoVencimiento | date: 'd \'de\' MMMM \'de\' y' }}</span></div>
+    <div class="summary-row"><span>Afiliado desde</span><span>{{ d.afiliacion.fechaInicio | date: 'd \'de\' MMMM \'de\' y' }}</span></div>
+    <div class="summary-row"><span>Costo de la afiliación</span><span>Sin costo</span></div>
     <div class="summary-row"><span>Socios distintos este mes</span><span>{{ sociosDelMes }}</span></div>
+    <div class="summary-row"><span>Ganancia estimada del mes</span><span>{{ d.mesActual.montoNeto | currency: 'MXN' : 'symbol-narrow' }}</span></div>
   </div>
 
   <form class="fp-card" [formGroup]="form" (ngSubmit)="onCancel()" *ngIf="!d.solicitudBaja">

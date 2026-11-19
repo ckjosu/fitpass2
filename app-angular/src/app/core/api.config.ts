@@ -63,6 +63,8 @@ export interface GimnasioDetalle {
   estado: string;
   codigoPostal: string | null;
   telefono: string | null;
+  latitud: number | null;
+  longitud: number | null;
   capacidadMaxima: number | null;
   categoria: string;
   situacion: string;
@@ -116,7 +118,10 @@ export interface Resumen {
   accesosMes: number;
   clientesMes: number;
   ingresoEstimadoMes: number;
-  contrato: { tipo: string; tarifaPorVisita: number; comision: number } | null;
+  pagoPorVisita: number;
+  precioPorVisita: number | null;
+  clase: string;
+  sociosNuevosMes: number;
   porHora: { hora: number; visitas: number }[];
   ultimosAccesos: AccesoReciente[];
   lectores: LectorResumen[];
@@ -146,49 +151,133 @@ export interface Reportes {
   motivosDenegacion: { motivo: string; veces: number }[];
 }
 
-export interface PlanPlataforma {
-  tipo: 'basico' | 'premium' | 'elite';
-  nombre: string;
-  precio: string;
-  nivel: number;
-  beneficios: string[];
-  actual: boolean;
-}
-
 export interface Liquidacion {
   id: number;
   anio: number;
   mes: number;
   visitas: number;
   montoBruto: number;
+  /** Ajuste por socios que pasaron su fondo. */
   comision: number;
   montoNeto: number;
   situacion: string;
 }
 
+/** Lo que se le paga al gimnasio en un mes. Ver app-api/src/common/tarifas.ts */
+export interface GananciaMes {
+  anio: number;
+  mes: number;
+  visitas: number;
+  socios: number;
+  sociosNuevos: number;
+  /** Visitas x su precio (con tope de categoria). */
+  montoBruto: number;
+  /** Ajuste cuando un socio paso su fondo del mes. */
+  recorte: number;
+  montoNeto: number;
+}
+
+/** Categoria del gimnasio: Esencial o Completo. */
+export interface Clasificacion {
+  nivel: number;
+  clase: string;
+  tope: number;
+  areas: string[];
+  faltaParaCompleto: string[];
+}
+
+/** El gimnasio no paga nada: pone su precio por visita y Gymred se lo paga. */
 export interface RespuestaContrato {
-  contrato: {
+  afiliacion: {
     id: number;
-    tipo: string;
-    nombre: string;
-    nivel: number;
-    tarifaPorVisita: number;
-    cuotaFijaMensual: number;
-    comisionPlataforma: number;
     fechaInicio: string;
     fechaFin: string | null;
     situacion: string;
+    costo: number;
+    precioPorVisita: number | null;
+    pagoPorVisita: number;
   };
-  planes: PlanPlataforma[];
-  facturacion: {
-    proximoVencimiento: string;
-    ciclo: string;
-    comision: string;
-    tarifaPorVisita: number;
-  };
+  clasificacion: Clasificacion;
+  topes: { nivel: number; nombre: string; tope: number; descripcion: string | null }[];
+  mesActual: GananciaMes;
+  proximoCorte: string;
+  fechaPago: string;
   liquidaciones: Liquidacion[];
-  solicitudPendiente: { tipoSolicitado: string; situacion: string } | null;
   solicitudBaja: { id: number; motivo: string; situacion: string; creadoEn: string } | null;
+}
+
+// ----- Resenas -----
+export interface Resena {
+  id: number;
+  calificacion: number;
+  comentario: string | null;
+  respuesta: string | null;
+  respondidoEn: string | null;
+  creadoEn: string;
+  cliente: string;
+  visitas: number;
+}
+
+export interface RespuestaResenas {
+  resumen: {
+    total: number;
+    promedio: number;
+    promedioUltimos30: number;
+    sinResponder: number;
+    distribucion: { estrellas: number; cantidad: number; porcentaje: number }[];
+  };
+  resenas: Resena[];
+}
+
+// ----- Clases -----
+export interface HorarioClase {
+  id?: number;
+  diaSemana: number;
+  horaInicio: string;
+}
+
+export interface Clase {
+  id: number;
+  idCatalogo: number | null;
+  nombre: string;
+  instructor: string | null;
+  descripcion: string | null;
+  duracionMin: number;
+  cupo: number;
+  activa: boolean;
+  horarios: HorarioClase[];
+}
+
+export interface SesionClase {
+  idHorario: number;
+  idClase: number;
+  clase: string;
+  instructor: string | null;
+  fecha: string;
+  dia: string;
+  horaInicio: string;
+  duracionMin: number;
+  cupo: number;
+  inscritos: number;
+  lugares: number;
+}
+
+export interface RespuestaClases {
+  resumen: {
+    clasesActivas: number;
+    sesionesSemana: number;
+    reservasSemana: number;
+    sesionesHoy: number;
+    ocupacionPromedio: number;
+  };
+  clases: Clase[];
+  sesiones: SesionClase[];
+}
+
+export interface TipoClase {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
 }
 
 export type Prioridad = 'baja' | 'media' | 'alta';

@@ -44,11 +44,32 @@
         <input id="codigoPostal" type="text" formControlName="codigoPostal" />
       </div>
       <div class="fp-field">
+        <label for="capacidadMaxima">Aforo máximo (personas)</label>
+        <input id="capacidadMaxima" type="number" min="1" formControlName="capacidadMaxima"
+               placeholder="Ej. 80" />
+      </div>
+      <div class="fp-field">
         <label for="descripcion">Descripción</label>
         <input id="descripcion" type="text" formControlName="descripcion" />
       </div>
     </div>
   </form>
+
+  <div class="fp-card">
+    <div class="ubicacion-head">
+      <div>
+        <h3>Ubicación en el mapa</h3>
+        <p class="fp-card-sub">Fija la entrada de tu gimnasio. Así te encuentran en la app y les marca la ruta.</p>
+      </div>
+      <span class="fp-badge fp-badge-orange" *ngIf="ubicacionCambio">Sin guardar</span>
+    </div>
+    <fp-map-picker
+      [latitud]="latitud"
+      [longitud]="longitud"
+      [direccion]="direccionTexto"
+      (cambio)="onUbicacion($event)">
+    </fp-map-picker>
+  </div>
 
   <div class="fp-card">
     <h3>Horarios de atención</h3>

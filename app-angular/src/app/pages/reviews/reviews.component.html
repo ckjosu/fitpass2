@@ -1,0 +1,109 @@
+<div>
+  <h1 class="fp-heading">Reseñas</h1>
+  <p class="subtitle">Lo que opinan los socios de tu gimnasio. Contestar te ayuda a que vengan más.</p>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando reseñas...</p>
+
+<ng-container *ngIf="datos as d">
+  <!-- Resumen: calificación y distribución -->
+  <section class="fp-card resumen">
+    <div class="promedio">
+      <p class="promedio-valor">{{ d.resumen.promedio | number: '1.1-1' }}</p>
+      <div class="estrellas grandes">
+        <span *ngFor="let e of estrellasDe(d.resumen.promedio)" class="estrella" [class]="'estrella ' + e">★</span>
+      </div>
+      <p class="promedio-nota">{{ d.resumen.total }} {{ d.resumen.total === 1 ? 'reseña' : 'reseñas' }}</p>
+    </div>
+
+    <div class="distribucion">
+      <button type="button" class="barra-fila" *ngFor="let b of d.resumen.distribucion"
+              [class.activa]="estrellas === b.estrellas" (click)="filtrarEstrellas(b.estrellas)"
+              [title]="'Ver reseñas de ' + b.estrellas + ' estrellas'">
+        <span class="barra-etiqueta">{{ b.estrellas }} ★</span>
+        <span class="barra"><span class="barra-llena" [style.width.%]="b.porcentaje"></span></span>
+        <span class="barra-cantidad">{{ b.cantidad }}</span>
+      </button>
+    </div>
+
+    <div class="indicadores">
+      <div class="indicador" [class.alerta]="d.resumen.sinResponder > 0">
+        <p class="indicador-valor">{{ d.resumen.sinResponder }}</p>
+        <p class="indicador-label">Sin responder</p>
+      </div>
+      <div class="indicador">
+        <p class="indicador-valor">{{ d.resumen.promedioUltimos30 ? (d.resumen.promedioUltimos30 | number: '1.1-1') : '—' }}</p>
+        <p class="indicador-label">Últimos 30 días</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <button type="button" *ngFor="let f of filtros" class="filtro" [class.activo]="filtro === f.valor"
+            (click)="cambiarFiltro(f.valor)">
+      {{ f.etiqueta }}
+      <span class="contador" *ngIf="f.valor === 'sin_responder' && d.resumen.sinResponder > 0">{{ d.resumen.sinResponder }}</span>
+    </button>
+    <button type="button" class="filtro activo estrellas-filtro" *ngIf="estrellas" (click)="filtrarEstrellas(estrellas!)">
+      {{ estrellas }} ★ ✕
+    </button>
+  </div>
+
+  <p class="fp-empty fp-card" *ngIf="d.resenas.length === 0">{{ vacio }}</p>
+
+  <!-- Lista -->
+  <article class="fp-card resena" *ngFor="let r of d.resenas" [class.pendiente]="!r.respuesta">
+    <header class="resena-head">
+      <div class="autor">
+        <span class="avatar">{{ iniciales(r.cliente) }}</span>
+        <div>
+          <p class="nombre">{{ r.cliente }}</p>
+          <p class="meta">
+            {{ r.creadoEn | date: 'd MMM y' }}
+            <span *ngIf="r.visitas > 0"> · {{ r.visitas }} {{ r.visitas === 1 ? 'visita' : 'visitas' }}</span>
+          </p>
+        </div>
+      </div>
+      <div class="estrellas">
+        <span *ngFor="let e of estrellasDe(r.calificacion)" [class]="'estrella ' + e">★</span>
+      </div>
+    </header>
+
+    <p class="comentario" *ngIf="r.comentario">{{ r.comentario }}</p>
+    <p class="comentario sin-texto" *ngIf="!r.comentario">Calificó sin dejar comentario.</p>
+
+    <!-- Respuesta publicada -->
+    <div class="respuesta" *ngIf="r.respuesta && respondiendo !== r.id">
+      <p class="respuesta-titulo">Respuesta de tu gimnasio · {{ r.respondidoEn | date: 'd MMM y' }}</p>
+      <p class="respuesta-texto">{{ r.respuesta }}</p>
+      <div class="acciones">
+        <button type="button" class="link" (click)="responder(r)">Editar</button>
+        <button type="button" class="link peligro" (click)="quitarRespuesta(r)">Eliminar</button>
+      </div>
+    </div>
+
+    <!-- Escribir respuesta -->
+    <div class="responder" *ngIf="respondiendo === r.id">
+      <textarea rows="3" [(ngModel)]="texto" [maxlength]="maximo"
+                placeholder="Escribe una respuesta amable. Si hay un problema, di qué vas a hacer para resolverlo."></textarea>
+      <div class="responder-pie">
+        <span class="contador-texto">{{ texto.length }} / {{ maximo }}</span>
+        <div class="acciones">
+          <button type="button" class="fp-btn fp-btn-secondary" (click)="cancelar()">Cancelar</button>
+          <button type="button" class="fp-btn fp-btn-primary" (click)="publicar(r)"
+                  [disabled]="texto.trim().length < 2 || enviando">
+            {{ enviando ? 'Publicando...' : 'Publicar respuesta' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="fp-btn fp-btn-secondary btn-responder"
+            *ngIf="!r.respuesta && respondiendo !== r.id" (click)="responder(r)">
+      Responder
+    </button>
+  </article>
+</ng-container>

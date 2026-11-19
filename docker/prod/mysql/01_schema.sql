@@ -10,7 +10,8 @@ CREATE DATABASE IF NOT EXISTS gymred
 USE gymred;
 
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS inventario_gimnasio, configuracion_gimnasio, incidencias,
+DROP TABLE IF EXISTS reservas_clase, clases_horario, clases_gimnasio,
+  inventario_gimnasio, configuracion_gimnasio, incidencias,
   solicitudes_baja, solicitudes_plan, precios_historial,
   resenas, liquidaciones, accesos, lectores, credenciales, pagos,
   suscripciones, planes_plataforma, contratos_gimnasio, precios_gimnasio,
@@ -150,7 +151,10 @@ CREATE TABLE precios_historial (
 
 -- ---------------------------------------------------------------------
 -- 9. PLANES DE LA PLATAFORMA (lo que contrata el CLIENTE)
--- nivel: define a que gimnasios da acceso.
+-- nivel: 1 = Esencial, 2 = Plus. Los gimnasios se clasifican con los
+-- mismos niveles; un plan entra a los gimnasios de su nivel o menor.
+-- tope_por_visita: lo maximo que Gymred le paga a un gimnasio de ese
+-- nivel por cada visita, aunque el dueno ponga un precio mas alto.
 -- ---------------------------------------------------------------------
 CREATE TABLE planes_plataforma (
   id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -158,6 +162,7 @@ CREATE TABLE planes_plataforma (
   descripcion    VARCHAR(255)  NULL,
   precio_mensual DECIMAL(10,2) NOT NULL,
   nivel          TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  tope_por_visita DECIMAL(10,2) NOT NULL DEFAULT 0,
   visitas_por_dia TINYINT UNSIGNED NOT NULL DEFAULT 1,
   visitas_por_mes SMALLINT UNSIGNED NULL,
   activo         BOOLEAN       NOT NULL DEFAULT TRUE
@@ -235,6 +240,8 @@ CREATE TABLE lectores (
 -- ---------------------------------------------------------------------
 -- 14. ACCESOS (bitacora: fuente de verdad de estadisticas y liquidaciones)
 -- Se registra TODO intento, permitido o denegado.
+-- pago_gimnasio: lo que Gymred le debe al gimnasio por esa visita. Se
+-- guarda al momento de entrar, asi un cambio de precio no mueve lo pasado.
 -- ---------------------------------------------------------------------
 CREATE TABLE accesos (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -245,6 +252,7 @@ CREATE TABLE accesos (
   codigo_leido  VARCHAR(120) NOT NULL,
   resultado     ENUM('permitido','denegado') NOT NULL,
   motivo        VARCHAR(120) NULL,
+  pago_gimnasio DECIMAL(10,2) NULL,
   registrado_en DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_acceso_gimnasio FOREIGN KEY (id_gimnasio) REFERENCES gimnasios(id) ON DELETE CASCADE,
   CONSTRAINT fk_acceso_lector FOREIGN KEY (id_lector) REFERENCES lectores(id) ON DELETE SET NULL,
@@ -255,18 +263,15 @@ CREATE TABLE accesos (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- 15. CONTRATOS GIMNASIO - PLATAFORMA
--- tarifa_por_visita: lo que Gymred le paga al gimnasio por cada visita.
--- Se negocia gimnasio por gimnasio, por eso el precio unico no lo perjudica.
+-- 15. AFILIACION DEL GIMNASIO A LA PLATAFORMA
+-- El gimnasio NO paga nada por estar en Gymred. Solo recibe visitantes.
+-- precio_por_visita: lo que el dueno cobra por cada dia que entra un
+-- socio Gymred. Se le paga ese precio, sin pasar el tope de su clase.
 -- ---------------------------------------------------------------------
 CREATE TABLE contratos_gimnasio (
   id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_gimnasio         INT UNSIGNED NOT NULL,
-  tipo                ENUM('basico','premium','elite') NOT NULL DEFAULT 'basico',
-  nivel               TINYINT UNSIGNED NOT NULL DEFAULT 1,
-  tarifa_por_visita   DECIMAL(10,2) NOT NULL,
-  cuota_fija_mensual  DECIMAL(10,2) NOT NULL DEFAULT 0,
-  comision_plataforma DECIMAL(5,2)  NOT NULL DEFAULT 10.00,
+  precio_por_visita   DECIMAL(10,2) NULL,
   fecha_inicio        DATE          NOT NULL,
   fecha_fin           DATE          NULL,
   situacion           ENUM('vigente','terminado','suspendido') NOT NULL DEFAULT 'vigente',
@@ -275,8 +280,10 @@ CREATE TABLE contratos_gimnasio (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- 16. LIQUIDACIONES MENSUALES
--- visitas x tarifa - comision = total a pagar al gimnasio.
+-- 16. LIQUIDACIONES (corte de lo que Gymred le deposita al gimnasio)
+-- Se paga por visita: monto_neto = suma de pago_gimnasio de sus accesos.
+-- monto_bruto = visitas x precio del dueno; comision = lo que recorto el
+-- tope de su clase (0 si su precio esta dentro del tope).
 -- ---------------------------------------------------------------------
 CREATE TABLE liquidaciones (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -307,22 +314,6 @@ CREATE TABLE resenas (
   CONSTRAINT fk_resena_cliente FOREIGN KEY (id_cliente) REFERENCES usuarios(id) ON DELETE CASCADE,
   UNIQUE KEY uq_resena_cliente (id_gimnasio, id_cliente),
   INDEX idx_resenas_gimnasio (id_gimnasio)
-) ENGINE=InnoDB;
-
--- ---------------------------------------------------------------------
--- 18. SOLICITUDES DE CAMBIO DE PLAN (las manda el dueno desde el panel)
--- ---------------------------------------------------------------------
-CREATE TABLE solicitudes_plan (
-  id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  id_gimnasio   INT UNSIGNED NOT NULL,
-  tipo_actual   ENUM('basico','premium','elite') NOT NULL,
-  tipo_solicitado ENUM('basico','premium','elite') NOT NULL,
-  mensaje       VARCHAR(300) NULL,
-  situacion     ENUM('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
-  creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  resuelto_en   DATETIME     NULL,
-  CONSTRAINT fk_solplan_gimnasio FOREIGN KEY (id_gimnasio) REFERENCES gimnasios(id) ON DELETE CASCADE,
-  INDEX idx_solplan_gimnasio (id_gimnasio, situacion)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

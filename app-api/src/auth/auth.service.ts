@@ -42,7 +42,7 @@ export class AuthService {
     };
   }
 
-  /** Alta de un dueno: crea el usuario, su gimnasio, sus horarios y el contrato basico. */
+  /** Alta de un dueno: crea el usuario, su gimnasio, sus horarios y su afiliacion (sin costo). */
   async registrarDueno(dto: RegistroDuenoDto) {
     const email = dto.email.toLowerCase().trim();
     if (await this.usuarios.findOne({ where: { email } })) {
@@ -86,11 +86,8 @@ export class AuthService {
       await m.save(
         m.create(ContratoGimnasio, {
           idGimnasio: gimnasio.id,
-          tipo: 'basico' as const,
-          nivel: 1,
-          tarifaPorVisita: 35,
-          cuotaFijaMensual: 0,
-          comisionPlataforma: 10,
+          // Arranca sin precio: el dueno lo pone en "Mis ganancias".
+          precioPorVisita: null,
           fechaInicio: new Date().toISOString().slice(0, 10),
           situacion: 'vigente',
         }),

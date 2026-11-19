@@ -22,13 +22,17 @@ const pantallas: Routes = [
       import('./pages/inventory/inventory.component').then((m) => m.InventoryComponent),
   },
   {
-    path: 'pricing',
-    loadComponent: () =>
-      import('./pages/pricing/pricing.component').then((m) => m.PricingComponent),
+    path: 'clases',
+    loadComponent: () => import('./pages/classes/classes.component').then((m) => m.ClassesComponent),
   },
   {
-    path: 'plan',
-    loadComponent: () => import('./pages/plan/plan.component').then((m) => m.PlanComponent),
+    path: 'resenas',
+    loadComponent: () => import('./pages/reviews/reviews.component').then((m) => m.ReviewsComponent),
+  },
+  {
+    path: 'ganancias',
+    loadComponent: () =>
+      import('./pages/earnings/earnings.component').then((m) => m.EarningsComponent),
   },
   {
     path: 'accesses',

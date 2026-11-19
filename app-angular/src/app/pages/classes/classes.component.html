@@ -1,0 +1,184 @@
+<div class="encabezado">
+  <div>
+    <h1 class="fp-heading">Clases</h1>
+    <p class="subtitle">Arma tu horario semanal. Los socios Gymred apartan su lugar desde la app.</p>
+  </div>
+  <button type="button" class="fp-btn fp-btn-primary" (click)="nueva()">+ Nueva clase</button>
+</div>
+
+<p class="fp-error" *ngIf="error">{{ error }}</p>
+<p class="fp-ok" *ngIf="exito">{{ exito }}</p>
+<p class="fp-loading" *ngIf="cargando">Cargando clases...</p>
+
+<!-- Alta / edición -->
+<section class="fp-card formulario" #formulario *ngIf="mostrarForm">
+  <div class="form-head">
+    <h3>{{ editando ? 'Editar ' + editando.nombre : 'Nueva clase' }}</h3>
+    <button type="button" class="cerrar" (click)="cerrarForm()" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div class="fp-grid-3">
+    <div class="fp-field">
+      <label for="tipo">Tipo de clase</label>
+      <select id="tipo" [(ngModel)]="form.tipo">
+        <option [ngValue]="null" disabled>Elige una opción</option>
+        <option *ngFor="let t of tipos" [ngValue]="t.id">{{ t.nombre }}</option>
+        <option ngValue="otra">Otra...</option>
+      </select>
+    </div>
+    <div class="fp-field" *ngIf="form.tipo === 'otra'">
+      <label for="nombre">Nombre de la clase</label>
+      <input id="nombre" type="text" maxlength="80" [(ngModel)]="form.nombre" placeholder="Ej. Pilates" />
+    </div>
+    <div class="fp-field">
+      <label for="instructor">Instructor</label>
+      <input id="instructor" type="text" maxlength="100" [(ngModel)]="form.instructor" placeholder="Opcional" />
+    </div>
+    <div class="fp-field">
+      <label for="duracion">Duración (min)</label>
+      <input id="duracion" type="number" min="15" max="240" step="5" [(ngModel)]="form.duracionMin" />
+    </div>
+    <div class="fp-field">
+      <label for="cupo">Cupo por sesión</label>
+      <input id="cupo" type="number" min="1" max="300" [(ngModel)]="form.cupo" />
+    </div>
+    <div class="fp-field ancho">
+      <label for="descripcion">Descripción</label>
+      <input id="descripcion" type="text" maxlength="300" [(ngModel)]="form.descripcion"
+             placeholder="Qué traer, nivel, etc. Lo ve el socio en la app" />
+    </div>
+  </div>
+
+  <div class="horarios-form">
+    <p class="label">Horarios</p>
+    <div class="horario-fila" *ngFor="let h of form.horarios; let i = index">
+      <select [(ngModel)]="h.diaSemana" [attr.aria-label]="'Día del horario ' + (i + 1)">
+        <option *ngFor="let d of dias; let j = index" [ngValue]="j + 1">{{ d }}</option>
+      </select>
+      <input type="time" [(ngModel)]="h.horaInicio" [attr.aria-label]="'Hora del horario ' + (i + 1)" />
+      <button type="button" class="quitar" (click)="quitarHorario(i)" *ngIf="form.horarios.length > 1"
+              aria-label="Quitar horario">✕</button>
+    </div>
+    <button type="button" class="link" (click)="agregarHorario()">+ Agregar otro horario</button>
+  </div>
+
+  <div class="form-pie">
+    <label class="check">
+      <input type="checkbox" [(ngModel)]="form.activa" /> Se puede reservar en la app
+    </label>
+    <div class="acciones">
+      <button type="button" class="fp-btn fp-btn-secondary" (click)="cerrarForm()">Cancelar</button>
+      <button type="button" class="fp-btn fp-btn-primary" [disabled]="!formValido || guardando" (click)="guardar()">
+        {{ guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear clase' }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<ng-container *ngIf="datos as d">
+  <div class="fp-grid-4">
+    <div class="fp-card stat">
+      <p class="stat-label">Clases activas</p>
+      <p class="stat-value">{{ d.resumen.clasesActivas }}</p>
+    </div>
+    <div class="fp-card stat">
+      <p class="stat-label">Sesiones esta semana</p>
+      <p class="stat-value">{{ d.resumen.sesionesSemana }}</p>
+      <p class="stat-nota">{{ d.resumen.sesionesHoy }} hoy</p>
+    </div>
+    <div class="fp-card stat">
+      <p class="stat-label">Lugares reservados</p>
+      <p class="stat-value">{{ d.resumen.reservasSemana }}</p>
+      <p class="stat-nota">Próximos 7 días</p>
+    </div>
+    <div class="fp-card stat">
+      <p class="stat-label">Ocupación promedio</p>
+      <p class="stat-value">{{ d.resumen.ocupacionPromedio }}%</p>
+      <p class="stat-nota">Del cupo de cada sesión</p>
+    </div>
+  </div>
+
+  <p class="fp-card fp-empty" *ngIf="d.clases.length === 0">
+    Todavía no tienes clases. Crea la primera con "Nueva clase" y aparecerá en la app para que los socios reserven.
+  </p>
+
+  <!-- Horario semanal -->
+  <section class="fp-card" *ngIf="d.clases.length > 0">
+    <h3>Horario semanal</h3>
+    <p class="fp-card-sub">Da clic en una clase para editarla</p>
+    <div class="semana">
+      <div class="dia" *ngFor="let bloques of semana; let i = index">
+        <p class="dia-nombre">{{ diasCortos[i] }}</p>
+        <button type="button" class="bloque" *ngFor="let b of bloques" [class.inactiva]="!b.activa"
+                (click)="editarPorId(b.idClase)">
+          <span class="bloque-hora">{{ b.hora }}</span>
+          <span class="bloque-clase">{{ b.clase }}</span>
+        </button>
+        <p class="dia-vacio" *ngIf="bloques.length === 0">—</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Próximas sesiones -->
+  <section class="fp-card" *ngIf="d.sesiones.length > 0">
+    <h3>Próximas sesiones</h3>
+    <p class="fp-card-sub">Cuántos socios apartaron lugar en los próximos 7 días</p>
+
+    <div class="sesion" *ngFor="let s of d.sesiones">
+      <div class="sesion-fila">
+        <div class="sesion-fecha" [class.hoy]="esHoy(s.fecha)">
+          <span class="sesion-dia">{{ esHoy(s.fecha) ? 'Hoy' : s.dia.slice(0, 3) }}</span>
+          <span class="sesion-num">{{ s.fecha | date: 'd MMM' }}</span>
+        </div>
+        <div class="sesion-info">
+          <p class="sesion-clase">{{ s.horaInicio }} · {{ s.clase }}</p>
+          <p class="sesion-meta">{{ s.duracionMin }} min<span *ngIf="s.instructor"> · {{ s.instructor }}</span></p>
+        </div>
+        <div class="sesion-cupo">
+          <div class="cupo-barra">
+            <div class="cupo-lleno" [style.width.%]="porcentaje(s)"
+                 [class.casi]="porcentaje(s) >= 75" [class.llena]="s.lugares === 0"></div>
+          </div>
+          <span class="cupo-texto">{{ s.inscritos }} / {{ s.cupo }}</span>
+          <span class="fp-badge fp-badge-red" *ngIf="s.lugares === 0">Llena</span>
+        </div>
+        <button type="button" class="link" (click)="verInscritos(s)" [disabled]="s.inscritos === 0">
+          {{ abierta === clave(s) ? 'Ocultar' : 'Ver inscritos' }}
+        </button>
+      </div>
+      <ul class="inscritos" *ngIf="abierta === clave(s)">
+        <li *ngFor="let p of inscritos">{{ p.cliente }}</li>
+        <li class="cargando" *ngIf="inscritos.length === 0">Cargando...</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Lista de clases -->
+  <section class="fp-card" *ngIf="d.clases.length > 0">
+    <h3>Tus clases</h3>
+    <table class="fp-table">
+      <thead>
+        <tr><th>Clase</th><th>Instructor</th><th>Duración</th><th>Cupo</th><th>Horarios</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of d.clases" [class.inactiva]="!c.activa">
+          <td><strong>{{ c.nombre }}</strong></td>
+          <td>{{ c.instructor || '—' }}</td>
+          <td>{{ c.duracionMin }} min</td>
+          <td>{{ c.cupo }}</td>
+          <td class="horarios-texto">{{ textoHorarios(c.horarios) }}</td>
+          <td>
+            <button type="button" class="fp-badge estado" [class.fp-badge-green]="c.activa" (click)="cambiarEstado(c)"
+                    [title]="c.activa ? 'Clic para que ya no se pueda reservar' : 'Clic para activarla'">
+              {{ c.activa ? 'Activa' : 'Inactiva' }}
+            </button>
+          </td>
+          <td class="acciones-tabla">
+            <button type="button" class="link" (click)="editar(c)">Editar</button>
+            <button type="button" class="link peligro" (click)="borrar(c)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</ng-container>

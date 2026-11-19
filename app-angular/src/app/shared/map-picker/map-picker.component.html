@@ -1,0 +1,22 @@
+<div class="mapa-barra">
+  <button type="button" class="fp-btn fp-btn-secondary" (click)="buscarDireccion()"
+          [disabled]="!direccion.trim() || buscando">
+    {{ buscando ? 'Buscando...' : 'Buscar mi dirección' }}
+  </button>
+  <button type="button" class="fp-btn fp-btn-secondary" (click)="usarMiUbicacion()" [disabled]="buscando">
+    Usar mi ubicación actual
+  </button>
+  <span class="mapa-ayuda">o haz clic en el mapa donde está tu entrada</span>
+</div>
+
+<div class="mapa" #mapa></div>
+
+<div class="mapa-pie">
+  <span *ngIf="latitud !== null && longitud !== null; else sinPunto" class="coordenadas">
+    📍 {{ latitud | number: '1.5-5' }}, {{ longitud | number: '1.5-5' }}
+  </span>
+  <ng-template #sinPunto>
+    <span class="sin-punto">Todavía no fijas la ubicación de tu gimnasio</span>
+  </ng-template>
+  <span class="aviso" *ngIf="aviso">{{ aviso }}</span>
+</div>

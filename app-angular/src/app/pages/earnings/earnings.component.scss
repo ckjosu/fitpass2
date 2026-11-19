@@ -1,0 +1,115 @@
+.afiliacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-color: var(--fp-green-light);
+}
+.afiliacion-texto { display: grid; gap: 8px; max-width: 640px; }
+.afiliacion-texto .fp-badge { justify-self: start; }
+.afiliacion-texto h3 { font-size: 17px; margin: 0; }
+.afiliacion-texto p { margin: 0; font-size: 13.5px; color: var(--fp-gray-mid); line-height: 1.5; }
+.afiliacion-dato { text-align: right; flex-shrink: 0; }
+.afiliacion-dato .label { margin: 0; font-size: 12px; color: var(--fp-gray-mid); }
+.afiliacion-dato .valor {
+  margin: 4px 0 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.stat { display: grid; gap: 4px; }
+.stat-label { margin: 0; font-size: 12.5px; color: var(--fp-gray-mid); }
+.stat-value {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.stat-nota { margin: 0; font-size: 12px; color: var(--fp-gray-soft); }
+.stat.destacado {
+  border-color: var(--fp-orange);
+  box-shadow: 0 0 0 1px var(--fp-orange), var(--fp-shadow);
+}
+.stat.destacado .stat-value { color: var(--fp-orange); }
+
+.billing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--fp-line-soft);
+  font-size: 13.5px;
+}
+.billing-row:last-child { border-bottom: none; }
+.billing-row span:first-child { color: var(--fp-gray-mid); }
+.billing-row span:last-child { font-weight: 600; }
+.billing-row .resta { color: var(--fp-red); }
+.billing-row.total span { color: var(--fp-carbon); font-size: 15px; font-weight: 700; }
+.billing-row.total span:last-child { color: var(--fp-orange); }
+
+@media (max-width: 720px) {
+  .afiliacion { flex-direction: column; align-items: flex-start; }
+  .afiliacion-dato { text-align: left; }
+}
+
+/* Precio por visita */
+.precio { display: grid; gap: 10px; align-content: start; }
+.precio h3, .clase h3 { margin: 0; font-size: 16px; }
+.precio .fp-card-sub, .clase .fp-card-sub { margin: 2px 0 0; }
+.precio-valor {
+  margin: 4px 0 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--fp-orange);
+}
+.precio-nota { margin: 0; font-size: 13px; color: var(--fp-gray-mid); line-height: 1.5; }
+.precio-nota.fuera { color: var(--fp-red); font-weight: 600; }
+.aviso-tope { display: block; color: var(--fp-warn-ink); }
+.precio .fp-btn { justify-self: start; }
+.precio-editar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.precio-editar .signo { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 600; color: var(--fp-gray-mid); }
+.precio-editar input {
+  width: 120px;
+  padding: 10px 12px;
+  font-size: 18px;
+  font-weight: 600;
+  border: 1px solid var(--fp-gray-border);
+  border-radius: 10px;
+  outline: none;
+}
+.precio-editar input:focus { border-color: var(--fp-orange); box-shadow: 0 0 0 3px var(--fp-orange-light); }
+
+/* Clase del gimnasio */
+.clase { display: grid; gap: 12px; align-content: start; }
+.clase-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.topes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tope {
+  border: 1px solid var(--fp-gray-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  opacity: 0.65;
+}
+.tope.actual { opacity: 1; border-color: var(--fp-orange); box-shadow: 0 0 0 1px var(--fp-orange); }
+.tope p { margin: 0; }
+.tope-nombre { font-weight: 700; font-size: 14px; }
+.tope-valor { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; margin-top: 2px !important; }
+.tope-nota { font-size: 12px; color: var(--fp-gray-mid); margin-top: 2px !important; }
+.clase-linea { margin: 0; font-size: 13px; }
+.clase-linea span { color: var(--fp-gray-mid); }
+.falta {
+  background: var(--fp-warn-bg);
+  border: 1px solid var(--fp-warn-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.falta-titulo { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--fp-warn-ink); }
+.falta ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--fp-warn-ink); }
+
+.calculo-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.calculo-head h3 { margin: 0; }
+.nota-calculo { margin: 12px 0 0; font-size: 12.5px; color: var(--fp-gray-mid); line-height: 1.5; }

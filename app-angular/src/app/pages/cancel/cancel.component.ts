@@ -33,7 +33,7 @@ export class CancelComponent implements OnInit, OnDestroy {
   motivos = [
     { valor: 'Cierre del gimnasio', etiqueta: 'Cierre del gimnasio' },
     { valor: 'Cambio de plataforma', etiqueta: 'Cambio de plataforma' },
-    { valor: 'Costos', etiqueta: 'Costos' },
+    { valor: 'No llegan suficientes socios', etiqueta: 'No llegan suficientes socios' },
     { valor: 'Otro', etiqueta: 'Otro' },
   ];
 
@@ -57,7 +57,7 @@ export class CancelComponent implements OnInit, OnDestroy {
           this.accesos.resumen(this.gymId).subscribe((res) => (this.sociosDelMes = res.clientesMes));
         },
         error: (e) => {
-          this.error = mensajeDeError(e, 'No se pudo cargar tu contrato');
+          this.error = mensajeDeError(e, 'No se pudo cargar tu afiliación');
           this.cargando = false;
         },
       });

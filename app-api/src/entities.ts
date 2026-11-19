@@ -15,7 +15,6 @@ const numT = {
 };
 
 export type Rol = 'admin' | 'dueno' | 'cliente';
-export type TipoContrato = 'basico' | 'premium' | 'elite';
 export type Concepto = 'visita' | 'semana' | 'quincena' | 'mes' | 'anual';
 
 @Entity('usuarios')
@@ -122,10 +121,16 @@ export class PlanPlataforma {
   @PrimaryGeneratedColumn({ unsigned: true }) id: number;
   @Column() nombre: string;
   @Column({ nullable: true }) descripcion: string;
+  /** 'esencial' | 'plus' */
+  @Column({ nullable: true }) codigo: string;
   @Column({ name: 'precio_mensual', type: 'decimal', precision: 10, scale: 2, transformer: numT }) precioMensual: number;
+  /** Parte del precio que se reparte a los gimnasios (el fondo del socio). */
+  @Column({ name: 'porcentaje_fondo', type: 'decimal', precision: 5, scale: 2, transformer: numT }) porcentajeFondo: number;
+  /** 1 = solo gimnasios Esencial, 2 = Esencial y Completo. */
   @Column() nivel: number;
   @Column({ name: 'visitas_por_dia' }) visitasPorDia: number;
   @Column({ name: 'visitas_por_mes', nullable: true }) visitasPorMes: number;
+  @Column({ name: 'invitados_por_mes' }) invitadosPorMes: number;
   @Column() activo: boolean;
 }
 
@@ -184,20 +189,23 @@ export class Acceso {
   @Column({ name: 'codigo_leido' }) codigoLeido: string;
   @Column() resultado: 'permitido' | 'denegado';
   @Column({ nullable: true }) motivo: string;
+  /** Lo que Gymred le debe al gimnasio por esta visita. */
+  @Column({ name: 'pago_gimnasio', type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: numT }) pagoGimnasio: number;
   @Column({ name: 'registrado_en' }) registradoEn: Date;
   @ManyToOne(() => Usuario) @JoinColumn({ name: 'id_cliente' }) cliente: Usuario;
   @ManyToOne(() => Credencial) @JoinColumn({ name: 'id_credencial' }) credencial: Credencial;
 }
 
+/**
+ * Afiliacion del gimnasio a Gymred. El gimnasio no paga nada: solo recibe
+ * visitantes. precioPorVisita es lo que pide el dueno por cada dia que
+ * entra un socio; se le paga sin pasar el tope de su clase.
+ */
 @Entity('contratos_gimnasio')
 export class ContratoGimnasio {
   @PrimaryGeneratedColumn({ unsigned: true }) id: number;
   @Column({ name: 'id_gimnasio' }) idGimnasio: number;
-  @Column() tipo: TipoContrato;
-  @Column() nivel: number;
-  @Column({ name: 'tarifa_por_visita', type: 'decimal', precision: 10, scale: 2, transformer: numT }) tarifaPorVisita: number;
-  @Column({ name: 'cuota_fija_mensual', type: 'decimal', precision: 10, scale: 2, transformer: numT }) cuotaFijaMensual: number;
-  @Column({ name: 'comision_plataforma', type: 'decimal', precision: 5, scale: 2, transformer: numT }) comisionPlataforma: number;
+  @Column({ name: 'precio_por_visita', type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: numT }) precioPorVisita: number;
   @Column({ name: 'fecha_inicio', type: 'date' }) fechaInicio: string;
   @Column({ name: 'fecha_fin', type: 'date', nullable: true }) fechaFin: string;
   @Column() situacion: string;
@@ -211,7 +219,9 @@ export class Liquidacion {
   @Column() mes: number;
   @Column() visitas: number;
   @Column({ name: 'monto_bruto', type: 'decimal', precision: 12, scale: 2, transformer: numT }) montoBruto: number;
+  /** Descuento proporcional cuando un socio paso el tope de su fondo. */
   @Column({ type: 'decimal', precision: 12, scale: 2, transformer: numT }) comision: number;
+
   @Column({ name: 'monto_neto', type: 'decimal', precision: 12, scale: 2, transformer: numT }) montoNeto: number;
   @Column() situacion: string;
 }
@@ -223,19 +233,10 @@ export class Resena {
   @Column({ name: 'id_cliente' }) idCliente: number;
   @Column() calificacion: number;
   @Column({ nullable: true }) comentario: string;
+  /** Lo que contesta el dueno desde el panel. */
+  @Column({ nullable: true }) respuesta: string;
+  @Column({ name: 'respondido_en', nullable: true }) respondidoEn: Date;
   @Column({ name: 'creado_en' }) creadoEn: Date;
-}
-
-@Entity('solicitudes_plan')
-export class SolicitudPlan {
-  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
-  @Column({ name: 'id_gimnasio' }) idGimnasio: number;
-  @Column({ name: 'tipo_actual' }) tipoActual: TipoContrato;
-  @Column({ name: 'tipo_solicitado' }) tipoSolicitado: TipoContrato;
-  @Column({ nullable: true }) mensaje: string;
-  @Column() situacion: string;
-  @Column({ name: 'creado_en' }) creadoEn: Date;
-  @Column({ name: 'resuelto_en', nullable: true }) resueltoEn: Date;
 }
 
 @Entity('solicitudes_baja')
@@ -316,4 +317,43 @@ export class CatalogoAmenidad {
   @Column() nombre: string;
   @Column({ nullable: true }) icono: string;
   @Column() activo: boolean;
+}
+
+/** Clase que da el gimnasio (spinning, yoga, box...). */
+@Entity('clases_gimnasio')
+export class ClaseGimnasio {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column({ name: 'id_gimnasio' }) idGimnasio: number;
+  @Column({ name: 'id_catalogo', nullable: true }) idCatalogo: number;
+  @Column() nombre: string;
+  @Column({ nullable: true }) instructor: string;
+  @Column({ nullable: true }) descripcion: string;
+  @Column({ name: 'duracion_min' }) duracionMin: number;
+  @Column() cupo: number;
+  @Column() activa: boolean;
+  @Column({ name: 'creado_en' }) creadoEn: Date;
+  @OneToMany(() => HorarioClase, (h) => h.clase) horarios: HorarioClase[];
+}
+
+/** Horario semanal de una clase. 1 = lunes ... 7 = domingo. */
+@Entity('clases_horario')
+export class HorarioClase {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column({ name: 'id_clase' }) idClase: number;
+  @Column({ name: 'dia_semana' }) diaSemana: number;
+  @Column({ name: 'hora_inicio', type: 'time' }) horaInicio: string;
+  @ManyToOne(() => ClaseGimnasio, (c) => c.horarios, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id_clase' })
+  clase: ClaseGimnasio;
+}
+
+/** Lugar apartado por un socio en una sesion (horario + fecha). */
+@Entity('reservas_clase')
+export class ReservaClase {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column({ name: 'id_horario' }) idHorario: number;
+  @Column({ name: 'id_cliente' }) idCliente: number;
+  @Column({ type: 'date' }) fecha: string;
+  @Column() situacion: 'reservada' | 'cancelada';
+  @Column({ name: 'creado_en' }) creadoEn: Date;
 }

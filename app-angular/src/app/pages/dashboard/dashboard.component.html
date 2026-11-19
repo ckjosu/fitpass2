@@ -4,15 +4,6 @@
 </div>
 
 <!-- Avisos: lo que el dueño tiene que atender antes que nada -->
-<div class="aviso aviso-plan" *ngIf="mostrarAvisoPlan && diasParaVencer !== null && diasParaVencer <= 30">
-  <div class="icono">!</div>
-  <div class="texto">
-    <p class="t">Tu plan Gymred se renueva en {{ diasParaVencer }} {{ diasParaVencer === 1 ? 'día' : 'días' }} — {{ fechaVencimiento | date: 'd \'de\' MMMM \'de\' y' }}</p>
-    <p class="d">Mantenlo al corriente para que el lector de QR siga activo.</p>
-  </div>
-  <a class="fp-btn fp-btn-primary" routerLink="/plan">Ver mi plan</a>
-</div>
-
 <div class="aviso aviso-mant" *ngIf="mostrarAvisoMantenimiento && reportesPendientes > 0">
   <div class="icono">⚒</div>
   <div class="texto">

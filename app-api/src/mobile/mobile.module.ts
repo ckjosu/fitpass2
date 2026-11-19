@@ -5,6 +5,7 @@ import {
 } from '../entities';
 import { AccessModule } from '../access/access.module';
 import { InventoryModule } from '../inventory/inventory.module';
+import { ClassesModule } from '../classes/classes.module';
 import { MobileService } from './mobile.service';
 import { MobileController } from './mobile.controller';
 
@@ -15,6 +16,7 @@ import { MobileController } from './mobile.controller';
     ]),
     AccessModule,
     InventoryModule,
+    ClassesModule,
   ],
   controllers: [MobileController],
   providers: [MobileService],

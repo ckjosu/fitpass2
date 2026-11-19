@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class FiltroHistorialDto {
   @ApiPropertyOptional({ example: '2026-09-01' }) @IsOptional() @IsString() desde?: string;
@@ -10,4 +10,12 @@ export class FiltroHistorialDto {
   @IsOptional() @IsString() buscar?: string;
   @ApiPropertyOptional({ example: 1 }) @IsOptional() pagina?: number;
   @ApiPropertyOptional({ example: 15 }) @IsOptional() porPagina?: number;
+}
+
+export class CapacidadDto {
+  @ApiProperty({ example: 120, description: 'Cuantas personas caben al mismo tiempo' })
+  @IsInt({ message: 'Escribe un numero entero' })
+  @Min(1, { message: 'El aforo debe ser mayor a 0' })
+  @Max(5000)
+  capacidadMaxima: number;
 }
