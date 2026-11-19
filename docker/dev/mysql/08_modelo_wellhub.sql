@@ -56,7 +56,7 @@ ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), descripcion = VALUES(descripcio
 -- nivel: 1 = solo gimnasios Esencial, 2 = Esencial y Completo
 -- porcentaje_fondo: parte del precio que se reparte a los gimnasios
 -- ---------------------------------------------------------------------
-CALL agregar_columna('planes_plataforma', 'codigo', "VARCHAR(10) NULL AFTER id");
+CALL agregar_columna('planes_plataforma', 'codigo', 'VARCHAR(10) NULL AFTER id');
 CALL agregar_columna('planes_plataforma', 'porcentaje_fondo', 'DECIMAL(5,2) NOT NULL DEFAULT 70.00 AFTER precio_mensual');
 CALL agregar_columna('planes_plataforma', 'invitados_por_mes', 'TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER visitas_por_mes');
 
