@@ -1,15 +1,57 @@
-<div class="mapa-barra">
-  <button type="button" class="fp-btn fp-btn-secondary" (click)="buscarDireccion()"
-          [disabled]="!direccion.trim() || buscando">
-    {{ buscando ? 'Buscando...' : 'Buscar mi dirección' }}
-  </button>
-  <button type="button" class="fp-btn fp-btn-secondary" (click)="usarMiUbicacion()" [disabled]="buscando">
-    Usar mi ubicación actual
-  </button>
-  <span class="mapa-ayuda">o haz clic en el mapa donde está tu entrada</span>
-</div>
+<div class="marco" #marco [class.completa]="completa">
+  <!-- Buscador sobre el mapa, como en Google Maps -->
+  <div class="buscador">
+    <div class="caja" [class.con-lista]="abierto && sugerencias.length > 0">
+      <svg class="lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+      </svg>
+      <input type="text" [(ngModel)]="texto" (input)="alEscribir()" (keydown)="teclas($event)"
+             (focus)="abierto = sugerencias.length > 0" (blur)="cerrarLuego()"
+             placeholder="Busca una calle, colonia o lugar" aria-label="Buscar en el mapa" autocomplete="off" />
+      <span class="girando" *ngIf="buscando"></span>
+      <button type="button" class="limpiar" *ngIf="texto && !buscando" (click)="limpiar()" aria-label="Borrar búsqueda">✕</button>
+    </div>
+    <ul class="lista" *ngIf="abierto">
+      <li *ngFor="let s of sugerencias; let i = index" [class.marcada]="i === marcada"
+          (mousedown)="elegir(s)">
+        <span class="icono-lugar">📍</span>
+        <span class="textos">
+          <span class="titulo">{{ s.titulo }}</span>
+          <span class="detalle">{{ s.detalle }}</span>
+        </span>
+      </li>
+      <li class="vacio" *ngIf="sugerencias.length === 0">Sin resultados. Prueba con la colonia o el nombre de un lugar cercano.</li>
+    </ul>
+  </div>
 
-<div class="mapa" #mapa></div>
+  <!-- Controles laterales -->
+  <div class="controles">
+    <button type="button" (click)="cambiarVista()" [title]="vista === 'calles' ? 'Ver satélite' : 'Ver calles'">
+      {{ vista === 'calles' ? 'Satélite' : 'Calles' }}
+    </button>
+    <button type="button" (click)="miUbicacion()" title="Usar mi ubicación actual" aria-label="Mi ubicación">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3.5" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="8" />
+      </svg>
+    </button>
+    <button type="button" (click)="centrarEnPin()" *ngIf="latitud !== null" title="Ir a mi pin" aria-label="Ir a mi pin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" />
+      </svg>
+    </button>
+    <button type="button" (click)="pantallaCompleta()" [title]="completa ? 'Salir de pantalla completa' : 'Pantalla completa'"
+            aria-label="Pantalla completa">
+      <svg *ngIf="!completa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+      </svg>
+      <svg *ngIf="completa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="mapa" #mapa></div>
+</div>
 
 <div class="mapa-pie">
   <span *ngIf="latitud !== null && longitud !== null; else sinPunto" class="coordenadas">
@@ -18,5 +60,9 @@
   <ng-template #sinPunto>
     <span class="sin-punto">Todavía no fijas la ubicación de tu gimnasio</span>
   </ng-template>
-  <span class="aviso" *ngIf="aviso">{{ aviso }}</span>
+  <span class="ayuda">
+    Haz clic en tu entrada o arrastra el pin.
+    <button type="button" class="link" *ngIf="direccion.trim()" (click)="usarDireccion()">Buscar la dirección que escribí</button>
+  </span>
 </div>
+<p class="aviso" *ngIf="aviso">{{ aviso }}</p>
