@@ -21,7 +21,13 @@ gymred/
 │   │       ├── 01_schema.sql
 │   │       ├── 02_seed.sql
 │   │       ├── 03_catalogo.sql
-│   │       └── 04_normalizacion.sql
+│   │       ├── 04_normalizacion.sql
+│   │       ├── 05_modelo_sin_cuota.sql
+│   │       ├── 06_clases_y_resenas.sql
+│   │       ├── 07_datos_clases_y_resenas.sql   # solo datos de prueba
+│   │       ├── 08_modelo_wellhub.sql
+│   │       ├── 09_datos_modelo_wellhub.sql     # solo datos de prueba
+│   │       └── 10_plus_30_visitas.sql
 │   └── prod/
 │       ├── api/Dockerfile              # Imagen compilada de la API
 │       ├── angular/Dockerfile          # Angular compilado servido por nginx
@@ -30,7 +36,17 @@ gymred/
 ├── docker-compose.dev.yml              # Configuración de desarrollo
 ├── docker-compose.prod.yml             # Configuración de producción
 ├── app-api/                            # Código de la API (NestJS)
+│   └── src/
+│       ├── auth/  gyms/  access/  classes/  reviews/  contracts/
+│       ├── mobile/  kiosk/  inventory/  incidents/  settings/
+│       └── common/tarifas.ts           # Cálculo del pago a gimnasios
 ├── app-angular/                        # Código del frontend (Angular)
+│   └── src/app/
+│       ├── core/                       # Servicios HTTP, guard e interceptor
+│       ├── layout/                     # Sidebar y topbar
+│       ├── pages/                      # Una carpeta por pantalla
+│       └── shared/map-picker/          # Mapa para fijar la ubicación
+├── netlify.toml                        # Despliegue del panel en Netlify
 └── README.md
 ```
 
@@ -72,7 +88,7 @@ MySQL solo entiende SQL.
 | # | Prueba | Resultado esperado |
 |---|---|---|
 | 1 | Abrir http://localhost:4200 | Carga la pantalla de inicio de sesión de Gymred |
-| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400) y Plus ($500) |
+| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400, 12 visitas) y Plus ($800, 30 visitas) |
 | 3 | Abrir http://localhost:8080 | Entra phpMyAdmin con usuario `gymred` y contraseña `gymred123` |
 | 4 | En phpMyAdmin revisar la base `gymred` | Aparecen las tablas y las 2 vistas (ya no existe `solicitudes_plan`) |
 | 5 | Iniciar sesión con `ricardo@ironhouse.mx` / `Gymred123` | Entra al panel y muestra el resumen del gimnasio |
@@ -167,6 +183,19 @@ docker compose -f docker-compose.dev.yml down -v     # borra la base y recarga e
 
 ## 5. Ambiente de producción
 
+En internet el proyecto está repartido en tres servicios:
+
+| Parte | Servicio | Cómo se actualiza |
+|---|---|---|
+| Panel web (Angular) | Netlify | Se compila con `netlify.toml` al hacer push |
+| API (NestJS) | Render | Se publica sola al hacer push a la rama `developers/josue` |
+| Base de datos (MySQL) | Aiven | Los scripts nuevos de `docker/prod/mysql/` se corren a mano, en orden |
+
+En Aiven el modo SQL tiene `ANSI_QUOTES`, así que en los scripts los textos van con
+comillas simples. Antes de correr un script nuevo, saca un respaldo de la base.
+
+También se puede levantar todo junto con Docker:
+
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
 ```
@@ -227,17 +256,20 @@ vencido, que el socio tenga suscripción vigente, que el gimnasio siga afiliado,
 plan alcance la clase del gimnasio (Esencial o Plus), y que no haya pasado su límite de visitas del día ni del mes. Todo intento
 queda registrado, se permita o no.
 
-## 8.1 Modelo de negocio (Modelo Canvas FITNEX, pago tipo Wellhub)
+## 8.1 Modelo de negocio
 
 Los gimnasios **no pagan nada**. Los socios pagan su membresía y la plataforma les
-paga a los gimnasios por las visitas: **30% para FITNEX y 70% para gimnasios**.
+paga a los gimnasios por las visitas: **30% para Gymred y 70% para gimnasios**.
 
 **Membresías del socio**
 
-| Membresía | Precio | Entra a | Visitas |
-|---|---|---|---|
-| Esencial | $400 | Todos los gimnasios Esencial | 12 al mes, 1 al día |
-| Plus | $500 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 12 al mes, 1 al día |
+| Membresía | Precio | Entra a | Visitas | Fondo para gimnasios (70%) |
+|---|---|---|---|---|
+| Esencial | $400 | Todos los gimnasios Esencial | 12 al mes, 1 al día | $280 |
+| Plus | $800 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 30 al mes, 1 al día | $560 |
+
+El límite de visitas sale de la tabla `planes_plataforma` (`visitas_por_mes`,
+`visitas_por_dia`), así que para cambiarlo basta con un script SQL.
 
 **Categorías de gimnasio** (salen solas del inventario, tabla `categorias_gimnasio`):
 Esencial (tope $30 por visita) y Completo (peso libre + máquinas + cardio, tope $45).
@@ -245,20 +277,28 @@ Esencial (tope $30 por visita) y Completo (peso libre + máquinas + cardio, tope
 **Cómo se paga** (`app-api/src/common/tarifas.ts`):
 
 ```
-fondo del socio = 70% de su membresía        (Esencial $280, Plus $350)
+fondo del socio = 70% de su membresía        (Esencial $280, Plus $560)
 pago por visita = precio del gimnasio, sin pasar el tope de su categoría
 total del socio = suma de sus pagos por visita del mes
 si total > fondo: cada visita se paga × (fondo / total)
 ```
 
-FITNEX nunca paga más del 70% de lo que cobró; lo que no se usa del fondo se queda
-en FITNEX. Se cierra el último día del mes (`POST /api/contrato/cierre/:anio/:mes`,
+Ejemplo: Luis tiene Plus (fondo $560) y va 20 veces a un gimnasio Completo que cobra
+$35. Sus visitas suman $700, más que su fondo, así que el factor es 560 / 700 = 0.8 y
+cada visita se paga a $28. El gimnasio recibe $560 y Gymred se queda con $240.
+
+Gymred nunca paga más del 70% de lo que cobró; lo que no se usa del fondo se queda
+en Gymred. Se cierra el último día del mes (`POST /api/contrato/cierre/:anio/:mes`,
 solo admin) y se paga el día 5. El admin ve las cuentas de la plataforma en
-`GET /api/contrato/fitnex/:anio/:mes`.
+`GET /api/contrato/fitnex/:anio/:mes` (la ruta conserva el nombre anterior).
+
+**Pendiente de programar:** la suscripción de prueba de 10 días (gratis para el
+socio; Gymred le paga al gimnasio esas visitas) está en el plan de negocios pero
+todavía no está en el código.
 
 Para una base que ya estaba en uso se corren una sola vez, en orden,
-`05_modelo_sin_cuota.sql`, `06_clases_y_resenas.sql` y `08_modelo_wellhub.sql`.
-Los archivos `07_...` y `09_...` solo traen datos de prueba.
+`05_modelo_sin_cuota.sql`, `06_clases_y_resenas.sql`, `08_modelo_wellhub.sql` y
+`10_plus_30_visitas.sql`. Los archivos `07_...` y `09_...` solo traen datos de prueba.
 
 ---
 
@@ -266,8 +306,26 @@ Los archivos `07_...` y `09_...` solo traen datos de prueba.
 
 | Capa | Herramienta |
 |---|---|
-| Base de datos | MySQL 8 |
-| Backend | NestJS (Node + TypeScript) con TypeORM |
-| Frontend | Angular 18 con componentes standalone |
+| Base de datos | MySQL 8 (SQL) |
+| Backend | NestJS 10 (Node + TypeScript) con TypeORM y JWT |
+| Frontend | Angular 18 con componentes standalone (TypeScript, HTML y SCSS) |
+| App móvil | Flutter (Dart); su código no está en este repositorio |
+| Mapa y QR | Leaflet con OpenStreetMap, librería `qrcode` |
 | Administración de BD | phpMyAdmin |
 | Contenedores | Docker y Docker Compose |
+| Producción | Netlify (panel), Render (API) y Aiven (MySQL) |
+
+---
+
+## 10. Documentación del proyecto
+
+| Documento | Dónde está |
+|---|---|
+| Este README | Raíz del repositorio |
+| Historias de usuario | Rama `historias-de-usuario`, carpeta `historias-de-usuario/` |
+| Contrato de la API | `http://localhost:8000/api/openapi.json` (se genera solo) |
+| Cambios a la base de datos | `docker/*/mysql/`, un script numerado por cambio |
+| Plan de negocios, pitch y presentaciones | Fuera del repo, con el equipo |
+
+Regla del equipo: si un cambio de código cambia algo de lo que dice este README
+(planes, precios, rutas, scripts), se actualiza el README en el mismo commit.
