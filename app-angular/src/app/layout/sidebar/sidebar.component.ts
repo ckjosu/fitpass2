@@ -24,23 +24,8 @@ interface NavGroup {
   template: `
     <aside class="sidebar">
       <div class="logo-block">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-            <path d="M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8" />
-          </svg>
-        </div>
-        <div>
-          <p class="logo-title">Gymred</p>
-          <p class="logo-sub">Panel de gimnasio</p>
-        </div>
-      </div>
-
-      <div class="gym-block">
-        <div class="gym-avatar">{{ iniciales }}</div>
-        <div class="gym-text">
-          <p class="gym-name">{{ nombreGimnasio }}</p>
-          <p class="gym-plan">{{ plan }}</p>
-        </div>
+        <div class="logo-icon"><span></span></div>
+        <p class="logo-title">gymred</p>
       </div>
 
       <nav>
@@ -60,6 +45,14 @@ interface NavGroup {
           </a>
         </ng-container>
       </nav>
+
+      <div class="gym-block">
+        <div class="gym-avatar">{{ iniciales }}</div>
+        <div class="gym-text">
+          <p class="gym-name">{{ nombreGimnasio }}</p>
+          <p class="gym-plan">{{ plan }}</p>
+        </div>
+      </div>
     </aside>
   `,
   styleUrl: './sidebar.component.scss',

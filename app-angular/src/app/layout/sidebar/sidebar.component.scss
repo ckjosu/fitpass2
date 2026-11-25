@@ -15,47 +15,46 @@
 .logo-block {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 0 18px 20px;
+  gap: 10px;
+  padding: 2px 22px 26px;
 }
 .logo-icon {
-  width: 36px; height: 36px;
-  border-radius: 11px;
+  width: 26px; height: 26px;
+  border-radius: 8px;
   background: var(--fp-orange);
-  color: var(--fp-on-accent);
   display: flex; align-items: center; justify-content: center;
   flex: none;
 }
-.logo-icon svg { width: 20px; height: 20px; }
+.logo-icon span { width: 9px; height: 9px; border-radius: 3px; background: var(--fp-ink); }
 .logo-title {
   color: #fff;
   font-family: 'Archivo', sans-serif;
   font-weight: 700;
-  font-size: 16.5px;
+  font-size: 20px;
   letter-spacing: -0.02em;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1;
 }
-.logo-sub { color: #7A7A85; font-size: 11px; margin: 0; }
 
-/* ---- Gimnasio activo ---- */
+/* ---- Gimnasio activo (abajo del menu) ---- */
 .gym-block {
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin: 0 12px 22px;
+  gap: 10px;
+  margin: auto 12px 0;
   padding: 12px;
   border-radius: var(--fp-radius);
-  background: var(--fp-ink-soft);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   min-width: 0;
 }
 .gym-avatar {
   width: 38px; height: 38px;
-  border-radius: 11px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--fp-orange);
   font-family: 'Archivo', sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 13px;
   display: flex; align-items: center; justify-content: center;
   flex: none;
@@ -65,7 +64,7 @@
   color: #fff; font-size: 13.5px; font-weight: 600; margin: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.gym-plan { color: #8A8A95; font-size: 11.5px; margin: 0; }
+.gym-plan { color: #8A8F97; font-size: 12px; margin: 0; }
 
 /* ---- Navegacion ---- */
 nav { display: flex; flex-direction: column; padding: 0 12px; }
@@ -109,11 +108,11 @@ nav { display: flex; flex-direction: column; padding: 0 12px; }
 @media (max-width: 900px) {
   .sidebar { width: 72px; padding: 18px 0 24px; align-items: center; }
   .logo-block { padding: 0 0 18px; }
-  .logo-block > div:last-child,
+  .logo-title,
   .gym-text,
   .nav-group,
   .nav-label { display: none; }
-  .gym-block { margin: 0 0 18px; padding: 8px; background: none; }
+  .gym-block { margin: auto 0 0; padding: 8px; background: none; border: none; }
   nav { padding: 0 10px; width: 100%; }
   .nav-item { justify-content: center; padding: 11px 0; }
 }

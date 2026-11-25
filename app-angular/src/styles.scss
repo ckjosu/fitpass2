@@ -80,7 +80,8 @@ h1, h2, h3, h4, .fp-heading {
   letter-spacing: -0.015em;
 }
 
-h1, .fp-heading { font-size: 26px; line-height: 1.2; }
+h1, .fp-heading { font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; }
+h3 { font-weight: 600; }
 
 /* Bajada que va debajo de cada titulo de pagina */
 .subtitle {
@@ -378,6 +379,9 @@ tr.fp-row-denied td:first-child {
 }
 
 :root[data-tema='oscuro'] .fp-btn-danger { color: #0A0B0D; }
+/* En oscuro las tarjetas se separan por borde, no por sombra */
+:root[data-tema='oscuro'] .fp-card { box-shadow: none; border-radius: 16px; }
+:root[data-tema='oscuro'] .fp-btn-secondary { background: transparent; }
 
 :root[data-tema='oscuro'] input,
 :root[data-tema='oscuro'] select,

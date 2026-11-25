@@ -21,6 +21,7 @@ interface BarraHora {
   visitas: number;
   altura: number;
   etiqueta: string;
+  actual: boolean;
 }
 
 @Component({
@@ -112,6 +113,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   /** Distribucion de entradas por hora, de 5 a 22, para la grafica del panel. */
   private armarBarras(r: Resumen): BarraHora[] {
     const maximo = Math.max(1, ...r.porHora.map((h) => h.visitas));
+    const ahora = new Date().getHours();
     const barras: BarraHora[] = [];
 
     for (let hora = 5; hora <= 22; hora++) {
@@ -122,10 +124,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         visitas,
         altura: visitas === 0 ? 3 : Math.max(8, Math.round((visitas / maximo) * 100)),
         etiqueta: hora % 3 === 0 ? String(hora) : '',
+        actual: hora === ahora,
       });
     }
     return barras;
   }
+
+  /** Fecha de hoy para el encabezado, p. ej. "martes 24 de noviembre". */
+  hoy = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
 
   iniciales(nombre: string | null): string {
     return this.auth.iniciales(nombre || '?');

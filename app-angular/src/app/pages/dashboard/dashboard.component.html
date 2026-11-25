@@ -1,11 +1,22 @@
-<div>
-  <h1 class="fp-heading">Resumen del gimnasio</h1>
-  <p class="subtitle">Quién entró hoy y cómo va el mes</p>
-</div>
+<header class="cabecera">
+  <div>
+    <p class="fecha">{{ hoy }}</p>
+    <h1 class="fp-heading">Resumen</h1>
+  </div>
+  <div class="acciones">
+    <a class="fp-btn fp-btn-primary" routerLink="/kiosk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" />
+      </svg>
+      Mostrar QR de entrada
+    </a>
+  </div>
+</header>
 
 <!-- Avisos: lo que el dueño tiene que atender antes que nada -->
-<div class="aviso aviso-mant" *ngIf="mostrarAvisoMantenimiento && reportesPendientes > 0">
-  <div class="icono">⚒</div>
+<div class="aviso" *ngIf="mostrarAvisoMantenimiento && reportesPendientes > 0">
+  <span class="aviso-punto"></span>
   <div class="texto">
     <p class="t">Tienes {{ reportesPendientes }} {{ reportesPendientes === 1 ? 'reporte' : 'reportes' }} de mantenimiento sin atender</p>
     <p class="d">{{ equiposConFalla }}</p>
@@ -17,73 +28,67 @@
 <p class="fp-loading" *ngIf="cargando">Cargando datos del gimnasio...</p>
 
 <ng-container *ngIf="resumen as r">
-  <!-- Panel principal: el dato que el dueño revisa a diario -->
-  <section class="hero">
-    <div class="hero-main">
-      <p class="hero-label">Accesos hoy</p>
-      <p class="hero-value">{{ r.accesosHoy }}</p>
-      <p class="hero-note">
+  <section class="indicadores" aria-label="Indicadores">
+    <div class="fp-card ind">
+      <p class="ind-label">Accesos hoy</p>
+      <p class="ind-valor">{{ r.accesosHoy }}</p>
+      <p class="ind-nota">
         <span class="fp-badge" [class.fp-badge-green]="r.denegadosHoy === 0" [class.fp-badge-red]="r.denegadosHoy > 0">
           {{ r.denegadosHoy }} {{ r.denegadosHoy === 1 ? 'denegado' : 'denegados' }}
         </span>
-        <span class="hero-gym">{{ r.gimnasio.nombre }}</span>
       </p>
     </div>
-
-    <div class="hero-chart">
-      <p class="hero-chart-title">Entradas por hora</p>
-      <div class="horas">
-        <div class="hora" *ngFor="let b of barras" [title]="b.hora + ':00 · ' + b.visitas + ' entradas'">
-          <div class="hora-barra" [class.vacia]="b.visitas === 0" [style.height.%]="b.altura"></div>
-          <span class="hora-etiqueta">{{ b.etiqueta }}</span>
-        </div>
-      </div>
+    <div class="fp-card ind" *ngFor="let s of stats">
+      <p class="ind-label">{{ s.label }}</p>
+      <p class="ind-valor">{{ s.value }}</p>
+      <p class="ind-nota">{{ s.nota }}</p>
     </div>
   </section>
 
-  <div class="fp-grid-3">
-    <div class="fp-card stat" *ngFor="let s of stats" [attr.data-tono]="s.tono">
-      <p class="stat-label">{{ s.label }}</p>
-      <p class="stat-value">{{ s.value }}</p>
-      <p class="stat-nota">{{ s.nota }}</p>
+  <div class="fila">
+    <section class="fp-card grafica" aria-label="Entradas por hora">
+      <div class="card-head">
+        <h3>Entradas por hora</h3>
+        <span class="leyenda"><span class="cuadro actual"></span>Hora actual</span>
+      </div>
+      <div class="horas">
+        <div class="hora" *ngFor="let b of barras" [title]="b.hora + ':00 · ' + b.visitas + ' entradas'">
+          <span class="hora-valor" *ngIf="b.visitas > 0">{{ b.visitas }}</span>
+          <div class="hora-barra" [class.vacia]="b.visitas === 0" [class.actual]="b.actual" [style.height.%]="b.altura"></div>
+        </div>
+      </div>
+      <div class="horas-ejes">
+        <span *ngFor="let b of barras" [class.actual]="b.actual">{{ b.etiqueta }}</span>
+      </div>
+    </section>
+
+    <section class="fp-card recientes" aria-label="Accesos recientes">
+      <div class="card-head">
+        <h3>Accesos recientes</h3>
+        <a routerLink="/accesses">Ver todos</a>
+      </div>
+
+      <p class="fp-empty" *ngIf="r.ultimosAccesos.length === 0">
+        Todavía no hay lecturas. Escanea un código QR en la entrada y aparecerá aquí.
+      </p>
+
+      <div class="acceso" *ngFor="let a of r.ultimosAccesos.slice(0, 6)">
+        <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
+        <div class="acceso-texto">
+          <p class="acceso-nombre">{{ a.cliente || 'Sin identificar' }}</p>
+          <p class="acceso-hora">{{ a.registrado_en | date: 'h:mm a' }}</p>
+        </div>
+        <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
+          {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
+        </span>
+      </div>
+    </section>
+  </div>
+
+  <section class="fp-card" aria-label="Lectores instalados">
+    <div class="card-head">
+      <h3>Lectores instalados</h3>
     </div>
-  </div>
-
-  <div class="fp-card">
-    <h3>Accesos recientes</h3>
-    <p class="fp-card-sub">Últimos códigos QR leídos en la entrada</p>
-
-    <p class="fp-empty" *ngIf="r.ultimosAccesos.length === 0">
-      Todavía no hay lecturas. Escanea un código QR en la entrada y aparecerá aquí.
-    </p>
-
-    <table class="fp-table" *ngIf="r.ultimosAccesos.length > 0">
-      <thead>
-        <tr><th>Miembro</th><th>Código leído</th><th>Hora</th><th>Estado</th></tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let a of r.ultimosAccesos" [class.fp-row-denied]="a.resultado === 'denegado'">
-          <td>
-            <div class="fp-person">
-              <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
-              <span>{{ a.cliente || 'Sin identificar' }}</span>
-            </div>
-          </td>
-          <td class="serie">{{ a.codigo_leido }}</td>
-          <td>{{ a.registrado_en | date: 'dd/MM/yyyy h:mm a' }}</td>
-          <td>
-            <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
-              {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="fp-card">
-    <h3>Lectores instalados</h3>
-    <p class="fp-card-sub">Estado de los lectores de QR</p>
 
     <p class="fp-empty" *ngIf="r.lectores.length === 0">Este gimnasio aún no tiene lectores dados de alta.</p>
 
@@ -104,5 +109,5 @@
         </tr>
       </tbody>
     </table>
-  </div>
+  </section>
 </ng-container>
