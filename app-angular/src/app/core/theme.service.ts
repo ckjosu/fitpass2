@@ -14,9 +14,11 @@ export class ThemeService {
   aplicar(tema: string | null, acento: string | null): void {
     const raiz = document.documentElement;
 
-    if (tema) {
-      raiz.setAttribute('data-tema', tema);
-      localStorage.setItem(LLAVE_TEMA, tema);
+    // El diseño de Gymred es oscuro siempre. El tema que venga del servidor
+    // se ignora para que todos los gimnasios vean el panel igual.
+    if (tema !== undefined) {
+      raiz.setAttribute('data-tema', 'oscuro');
+      localStorage.setItem(LLAVE_TEMA, 'oscuro');
     }
     if (acento) {
       raiz.setAttribute('data-acento', acento);
