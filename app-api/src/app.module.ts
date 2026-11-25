@@ -12,6 +12,7 @@ import { KioskModule } from './kiosk/kiosk.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { ClassesModule } from './classes/classes.module';
+import { MapaModule } from './mapa/mapa.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ClassesModule } from './classes/classes.module';
     InventoryModule,
     ReviewsModule,
     ClassesModule,
+    MapaModule,
   ],
 })
 export class AppModule {}

@@ -4,7 +4,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import * as L from 'leaflet';
+import { API_URL } from '../../core/api.config';
 
 export interface Punto {
   latitud: number;
@@ -49,6 +52,7 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('marco', { static: true }) marco!: ElementRef<HTMLDivElement>;
 
   private zona = inject(NgZone);
+  private http = inject(HttpClient);
   private mapa?: L.Map;
   private pin?: L.Marker;
   private calles?: L.TileLayer;
@@ -191,12 +195,13 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
         return;
       }
 
-      // 2. Photon: busca mientras escribes, entiende palabras a medias y
-      //    encuentra negocios, calles y colonias. Da prioridad a lo cercano
-      //    al centro del mapa, como Google Maps.
-      let lista = await this.buscarPhoton(q, this.peticion.signal);
+      // 2. TomTom (por medio de nuestra API): negocios, calles y colonias,
+      //    con prioridad a lo cercano al centro del mapa, como Google Maps.
+      let lista = await this.buscarTomTom(q);
+      if (this.peticion.signal.aborted) return;
 
-      // 3. Si Photon no encuentra nada, se intenta con Nominatim.
+      // 3. Respaldo con datos de OpenStreetMap si TomTom no encuentra nada.
+      if (lista.length === 0) lista = await this.buscarPhoton(q, this.peticion.signal);
       if (lista.length === 0) lista = await this.buscarNominatim(q, this.peticion.signal);
 
       this.sugerencias = lista;
@@ -211,6 +216,18 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
       }
     } finally {
       this.buscando = false;
+    }
+  }
+
+  private async buscarTomTom(q: string): Promise<Sugerencia[]> {
+    const c = this.mapa?.getCenter();
+    let params = new HttpParams().set('q', q);
+    if (c) params = params.set('lat', c.lat).set('lng', c.lng);
+    try {
+      return await firstValueFrom(this.http.get<Sugerencia[]>(`${API_URL}/mapa/buscar`, { params }));
+    } catch {
+      // Sin clave de TomTom o sin cuota: se usan los otros buscadores.
+      return [];
     }
   }
 
