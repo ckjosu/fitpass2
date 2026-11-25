@@ -36,6 +36,7 @@
 .punto { width: 7px; height: 7px; border-radius: 50%; }
 .punto.ok { background: var(--fp-green); }
 .punto.malo { background: var(--fp-red); }
+.punto.reingreso { background: var(--fp-blue); }
 
 .buscador { position: relative; flex: 0 1 320px; }
 .buscador svg { position: absolute; left: 14px; top: 13px; width: 18px; height: 18px; color: var(--fp-gray-mid); }

@@ -6,7 +6,7 @@ import {
   PrecioGimnasio, PrecioHistorial, ServicioGimnasio,
 } from '../entities';
 import { GymsService } from './gyms.service';
-import { GymsController, PricesController } from './gyms.controller';
+import { FotosController, GymsController, PricesController } from './gyms.controller';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { GymsController, PricesController } from './gyms.controller';
       AmenidadGimnasio, CatalogoAmenidad, PrecioGimnasio, PrecioHistorial,
     ]),
   ],
-  controllers: [GymsController, PricesController],
+  controllers: [GymsController, PricesController, FotosController],
   providers: [GymsService],
   exports: [GymsService],
 })

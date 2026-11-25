@@ -78,8 +78,8 @@
           <p class="acceso-nombre">{{ a.cliente || 'Sin identificar' }}</p>
           <p class="acceso-hora">{{ a.registrado_en | date: 'h:mm a' }}</p>
         </div>
-        <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
-          {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
+        <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'" [class.fp-badge-blue]="a.resultado === 'reingreso'">
+          {{ a.resultado === 'permitido' ? 'Permitido' : a.resultado === 'reingreso' ? 'Volvió a entrar' : (a.motivo || 'Denegado') }}
         </span>
       </div>
     </section>

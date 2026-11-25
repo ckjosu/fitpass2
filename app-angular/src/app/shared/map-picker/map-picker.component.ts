@@ -163,38 +163,47 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
     clearTimeout(this.espera);
     this.marcada = -1;
     const q = this.texto.trim();
-    if (q.length < 3) {
+    if (q.length < 2) {
       this.sugerencias = [];
       this.abierto = false;
       return;
     }
     // Espera a que dejes de escribir para no pedir en cada tecla.
-    this.espera = setTimeout(() => this.buscar(q), 450);
+    this.espera = setTimeout(() => this.buscar(q), 300);
   }
 
   private async buscar(q: string): Promise<void> {
     this.peticion?.abort();
     this.peticion = new AbortController();
     this.buscando = true;
+    this.aviso = '';
     try {
-      // Da prioridad a lo que se ve en el mapa, sin limitarse a eso.
-      const b = this.mapa?.getBounds();
-      const caja = b ? `&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}` : '';
-      const url =
-        'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=mx' +
-        caja + '&q=' + encodeURIComponent(q);
-      const r = await fetch(url, { signal: this.peticion.signal, headers: { 'Accept-Language': 'es' } });
-      const datos: any[] = await r.json();
-      this.sugerencias = datos.map((d) => {
-        const partes = String(d.display_name).split(',').map((p: string) => p.trim());
-        return {
-          titulo: d.name || partes[0],
-          detalle: partes.slice(1, 4).join(', '),
-          lat: Number(d.lat),
-          lng: Number(d.lon),
-        };
-      });
+      // 1. Si pegaron coordenadas ("20.3693, -90.0518"), se va directo ahi.
+      const coords = q.match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);
+      if (coords) {
+        this.sugerencias = [{
+          titulo: 'Ir a las coordenadas',
+          detalle: `${coords[1]}, ${coords[2]}`,
+          lat: Number(coords[1]),
+          lng: Number(coords[2]),
+        }];
+        this.abierto = true;
+        return;
+      }
+
+      // 2. Photon: busca mientras escribes, entiende palabras a medias y
+      //    encuentra negocios, calles y colonias. Da prioridad a lo cercano
+      //    al centro del mapa, como Google Maps.
+      let lista = await this.buscarPhoton(q, this.peticion.signal);
+
+      // 3. Si Photon no encuentra nada, se intenta con Nominatim.
+      if (lista.length === 0) lista = await this.buscarNominatim(q, this.peticion.signal);
+
+      this.sugerencias = lista;
       this.abierto = true;
+      if (lista.length === 0) {
+        this.aviso = 'No encontramos ese lugar. Prueba con la calle y el municipio, o haz clic en el mapa.';
+      }
     } catch (e: any) {
       if (e?.name !== 'AbortError') {
         this.sugerencias = [];
@@ -203,6 +212,54 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
     } finally {
       this.buscando = false;
     }
+  }
+
+  private async buscarPhoton(q: string, signal: AbortSignal): Promise<Sugerencia[]> {
+    const c = this.mapa?.getCenter();
+    const cerca = c ? `&lat=${c.lat}&lon=${c.lng}&zoom=12&location_bias_scale=0.3` : '';
+    // Caja de Mexico para no mezclar resultados de otros paises.
+    const url = 'https://photon.komoot.io/api/?limit=8&bbox=-118.5,14.4,-86.6,32.8' +
+      cerca + '&q=' + encodeURIComponent(q);
+    const r = await fetch(url, { signal });
+    if (!r.ok) return [];
+    const datos = await r.json();
+    const vistos = new Set<string>();
+    const lista: Sugerencia[] = [];
+    for (const f of datos.features || []) {
+      const p = f.properties || {};
+      const [lng, lat] = f.geometry?.coordinates || [];
+      if (lat == null || lng == null) continue;
+      const calle = [p.street, p.housenumber].filter(Boolean).join(' ');
+      const titulo = p.name || calle || p.city || p.county;
+      const detalle = [p.name ? calle : '', p.district || p.locality, p.city || p.county, p.state]
+        .filter((x: string) => !!x && x !== titulo)
+        .join(', ');
+      const llave = titulo + '|' + detalle;
+      if (!titulo || vistos.has(llave)) continue;
+      vistos.add(llave);
+      lista.push({ titulo, detalle, lat: Number(lat), lng: Number(lng) });
+    }
+    return lista;
+  }
+
+  private async buscarNominatim(q: string, signal: AbortSignal): Promise<Sugerencia[]> {
+    const b = this.mapa?.getBounds();
+    const caja = b ? `&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}` : '';
+    const url =
+      'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=mx' +
+      caja + '&q=' + encodeURIComponent(q);
+    const r = await fetch(url, { signal, headers: { 'Accept-Language': 'es' } });
+    if (!r.ok) return [];
+    const datos: any[] = await r.json();
+    return datos.map((d) => {
+      const partes = String(d.display_name).split(',').map((x: string) => x.trim());
+      return {
+        titulo: d.name || partes[0],
+        detalle: partes.slice(1, 4).join(', '),
+        lat: Number(d.lat),
+        lng: Number(d.lon),
+      };
+    });
   }
 
   elegir(s: Sugerencia): void {

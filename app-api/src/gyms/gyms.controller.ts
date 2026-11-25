@@ -1,10 +1,10 @@
 import {
-  Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put,
+  BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res,
   UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GymsService } from './gyms.service';
 import {
@@ -59,12 +59,10 @@ export class GymsController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Sube un archivo de imagen del gimnasio' })
   @UseInterceptors(
+    // En memoria y luego a la base: el disco de Render se borra al reiniciar,
+    // por eso antes las fotos desaparecian despues de un rato.
     FileInterceptor('archivo', {
-      storage: diskStorage({
-        destination: process.env.UPLOADS_DIR || join(process.cwd(), 'uploads'),
-        filename: (_req, file, cb) =>
-          cb(null, `gym-${Date.now()}${extname(file.originalname)}`),
-      }),
+      storage: memoryStorage(),
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
@@ -73,10 +71,10 @@ export class GymsController {
     @UploadedFile() archivo: any,
     @Body('descripcion') descripcion?: string,
   ) {
-    return this.gyms.agregarFoto(gymId, {
-      url: `/uploads/${archivo.filename}`,
-      descripcion,
-    });
+    if (!archivo || !/^image\/(jpeg|png|webp|gif)$/.test(archivo.mimetype)) {
+      throw new BadRequestException('Sube una imagen JPG, PNG o WEBP de hasta 5 MB');
+    }
+    return this.gyms.subirFotoArchivo(gymId, archivo.buffer, archivo.mimetype, descripcion);
   }
 
   @Delete(':gymId/fotos/:idFoto')
@@ -153,5 +151,24 @@ export class PricesController {
     @Param('idPrecio', ParseIntPipe) idPrecio: number,
   ) {
     return this.gyms.borrarPrecio(gymId, idPrecio);
+  }
+}
+
+/**
+ * Imagen publica de una foto de gimnasio. No pide sesion porque la usan
+ * <img> del panel y la app; solo entrega bytes de imagen, no datos.
+ */
+@ApiTags('gimnasios')
+@Controller('fotos')
+export class FotosController {
+  constructor(private gyms: GymsService) {}
+
+  @Get(':idFoto')
+  @ApiOperation({ summary: 'Imagen de una foto de gimnasio' })
+  async ver(@Param('idFoto', ParseIntPipe) idFoto: number, @Res() res: Response) {
+    const { datos, tipo } = await this.gyms.imagen(idFoto);
+    res.setHeader('Content-Type', tipo);
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    res.send(datos);
   }
 }

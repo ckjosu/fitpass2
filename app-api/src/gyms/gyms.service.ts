@@ -120,6 +120,36 @@ export class GymsService {
     return foto;
   }
 
+  /** Guarda la imagen dentro de la base y le da una URL publica de la API. */
+  async subirFotoArchivo(id: number, datos: Buffer, tipo: string, descripcion?: string) {
+    const nueva = await this.fotos.save(
+      this.fotos.create({
+        idGimnasio: id,
+        url: '',
+        descripcion,
+        portada: false,
+        orden: 0,
+        datos,
+        tipo,
+      }),
+    );
+    nueva.url = `/api/fotos/${nueva.id}`;
+    await this.fotos.update({ id: nueva.id }, { url: nueva.url });
+    const { datos: _d, tipo: _t, ...sinBytes } = nueva;
+    return sinBytes;
+  }
+
+  /** Bytes de una foto para mostrarla (app y panel). */
+  async imagen(idFoto: number) {
+    const foto = await this.fotos
+      .createQueryBuilder('f')
+      .addSelect(['f.datos', 'f.tipo'])
+      .where('f.id = :id', { id: idFoto })
+      .getOne();
+    if (!foto || !foto.datos) throw new NotFoundException('Esa foto no existe');
+    return { datos: foto.datos, tipo: foto.tipo || 'image/jpeg' };
+  }
+
   async borrarFoto(id: number, idFoto: number) {
     const foto = await this.fotos.findOne({ where: { id: idFoto, idGimnasio: id } });
     if (!foto) throw new NotFoundException('Esa foto no es de este gimnasio');

@@ -96,7 +96,7 @@
 
     <div class="photo-grid">
       <div class="photo-thumb" *ngFor="let foto of fotos">
-        <span>{{ nombreArchivo(foto.url) }}</span>
+        <img [src]="urlFoto(foto.url)" [alt]="foto.descripcion || 'Foto del gimnasio'" loading="lazy" />
         <button type="button" class="remove-btn" (click)="removePhoto(foto)">×</button>
       </div>
       <label class="add-photo">

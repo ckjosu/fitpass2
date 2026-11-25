@@ -97,7 +97,7 @@ export interface RespuestaPrecios {
 export interface AccesoReciente {
   id: number;
   registrado_en: string;
-  resultado: 'permitido' | 'denegado';
+  resultado: 'permitido' | 'denegado' | 'reingreso';
   motivo: string | null;
   codigo_leido: string;
   cliente: string | null;
@@ -130,7 +130,7 @@ export interface Resumen {
 export interface FilaHistorial {
   id: number;
   registradoEn: string;
-  resultado: 'permitido' | 'denegado';
+  resultado: 'permitido' | 'denegado' | 'reingreso';
   motivo: string | null;
   codigoLeido: string;
   cliente: string | null;

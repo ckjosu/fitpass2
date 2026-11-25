@@ -7,7 +7,7 @@
       </svg>
       <input type="text" [(ngModel)]="texto" (input)="alEscribir()" (keydown)="teclas($event)"
              (focus)="abierto = sugerencias.length > 0" (blur)="cerrarLuego()"
-             placeholder="Busca una calle, colonia o lugar" aria-label="Buscar en el mapa" autocomplete="off" />
+             placeholder="Busca un negocio, calle, colonia o pega coordenadas" aria-label="Buscar en el mapa" autocomplete="off" />
       <span class="girando" *ngIf="buscando"></span>
       <button type="button" class="limpiar" *ngIf="texto && !buscando" (click)="limpiar()" aria-label="Borrar búsqueda">✕</button>
     </div>

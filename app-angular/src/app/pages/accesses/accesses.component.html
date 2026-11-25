@@ -17,6 +17,9 @@
       <button type="button" role="tab" [attr.aria-selected]="resultado === 'denegado'" [class.activa]="resultado === 'denegado'" (click)="resultado = 'denegado'; filtrar()">
         <span class="punto malo"></span>Denegados
       </button>
+      <button type="button" role="tab" [attr.aria-selected]="resultado === 'reingreso'" [class.activa]="resultado === 'reingreso'" (click)="resultado = 'reingreso'; filtrar()">
+        <span class="punto reingreso"></span>Reingresos
+      </button>
     </div>
 
     <div class="buscador">
@@ -58,8 +61,8 @@
         <td>{{ a.registradoEn | date: 'EEE d MMM' }}</td>
         <td class="hora">{{ a.registradoEn | date: 'h:mm a' }}</td>
         <td>
-          <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
-            {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
+          <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'" [class.fp-badge-blue]="a.resultado === 'reingreso'">
+            {{ a.resultado === 'permitido' ? 'Permitido' : a.resultado === 'reingreso' ? 'Volvió a entrar' : (a.motivo || 'Denegado') }}
           </span>
         </td>
       </tr>

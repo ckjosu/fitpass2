@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormArray, Validators } from '@angula
 import { Subscription, switchMap } from 'rxjs';
 import { GymsService } from '../../core/gyms.service';
 import { AuthService } from '../../core/auth.service';
-import { Foto, GimnasioDetalle } from '../../core/api.config';
+import { API_URL, Foto, GimnasioDetalle } from '../../core/api.config';
 import { mensajeDeError } from '../../core/auth.interceptor';
 import { MapPickerComponent, Punto } from '../../shared/map-picker/map-picker.component';
 
@@ -186,6 +186,12 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       next: () => (this.fotos = this.fotos.filter((f) => f.id !== foto.id)),
       error: (e) => (this.error = mensajeDeError(e, 'No se pudo eliminar la foto')),
     });
+  }
+
+  /** Las fotos vienen como "/api/fotos/12": se les pone el servidor de la API. */
+  urlFoto(url: string): string {
+    if (!url || url.startsWith('http')) return url;
+    return API_URL.replace(/\/api\/?$/, '') + url;
   }
 
   nombreArchivo(url: string): string {

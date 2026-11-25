@@ -17,6 +17,10 @@ interface Respuesta {
   gimnasio?: string;
   plan?: string;
   visitasRestantesHoy?: number;
+  /** Dias que le quedan al socio este mes (null = sin limite). */
+  diasRestantesMes?: number | null;
+  /** true si ya habia entrado hoy a este gimnasio y solo volvio a pasar. */
+  reingreso?: boolean;
 }
 
 @Injectable()
@@ -34,7 +38,7 @@ export class AccessService {
     idGimnasio: number,
     idLector: number,
     codigo: string,
-    resultado: 'permitido' | 'denegado',
+    resultado: 'permitido' | 'denegado' | 'reingreso',
     motivo?: string,
     idCliente?: number,
     pago?: number,
@@ -112,38 +116,51 @@ export class AccessService {
       return { permitido: false, motivo, plan: plan.nombre };
     }
 
-    // 5. Limite de visitas por dia
-    const visitasHoy = await this.accesos
+    // 5. Un gimnasio por dia, con reingresos libres.
+    //    Si hoy ya entro a ESTE gimnasio, puede salir y volver a entrar las
+    //    veces que quiera: se guarda como 'reingreso' y no gasta otro dia
+    //    ni se le vuelve a pagar al gimnasio.
+    //    Si hoy ya entro a OTRO gimnasio, se le niega: un gimnasio por dia.
+    const entradaDeHoy = await this.accesos
       .createQueryBuilder('a')
       .where('a.id_cliente = :c', { c: idCliente })
       .andWhere("a.resultado = 'permitido'")
       .andWhere('DATE(a.registrado_en) = CURDATE()')
-      .getCount();
+      .orderBy('a.registrado_en', 'ASC')
+      .getOne();
 
-    if (visitasHoy >= plan.visitasPorDia) {
-      const motivo =
-        plan.visitasPorDia === 1
-          ? 'Ya registraste tu visita de hoy'
-          : 'Alcanzaste tus visitas de hoy';
-      await this.registrar(gym, pantalla.id, codigo, 'denegado', motivo, idCliente);
-      return { permitido: false, motivo, plan: plan.nombre };
-    }
+    const diasUsados = await this.diasUsadosDelMes(idCliente);
+    const diasRestantesMes = plan.visitasPorMes
+      ? Math.max(0, plan.visitasPorMes - diasUsados)
+      : null;
 
-    // 6. Limite de visitas por mes (si el plan lo tiene)
-    if (plan.visitasPorMes) {
-      const visitasMes = await this.accesos
-        .createQueryBuilder('a')
-        .where('a.id_cliente = :c', { c: idCliente })
-        .andWhere("a.resultado = 'permitido'")
-        .andWhere('MONTH(a.registrado_en) = MONTH(CURDATE())')
-        .andWhere('YEAR(a.registrado_en) = YEAR(CURDATE())')
-        .getCount();
-
-      if (visitasMes >= plan.visitasPorMes) {
-        const motivo = `Ya usaste tus ${plan.visitasPorMes} visitas del mes`;
+    if (entradaDeHoy) {
+      if (entradaDeHoy.idGimnasio !== gym) {
+        const otro = await this.gimnasios.findOne({ where: { id: entradaDeHoy.idGimnasio } });
+        const motivo = `Hoy ya usaste tu dia en ${otro?.nombre || 'otro gimnasio'}`;
         await this.registrar(gym, pantalla.id, codigo, 'denegado', motivo, idCliente);
         return { permitido: false, motivo, plan: plan.nombre };
       }
+
+      await this.registrar(gym, pantalla.id, codigo, 'reingreso', null, idCliente);
+      const gimnasioHoy = await this.gimnasios.findOne({ where: { id: gym } });
+      const clienteHoy = await this.accesos.manager.query('SELECT nombre FROM usuarios WHERE id = ?', [idCliente]);
+      return {
+        permitido: true,
+        reingreso: true,
+        cliente: clienteHoy[0]?.nombre,
+        gimnasio: gimnasioHoy?.nombre,
+        plan: plan.nombre,
+        visitasRestantesHoy: 0,
+        diasRestantesMes,
+      };
+    }
+
+    // 6. Dias del mes segun el plan (Esencial 15, Plus 30)
+    if (plan.visitasPorMes && diasUsados >= plan.visitasPorMes) {
+      const motivo = `Ya usaste tus ${plan.visitasPorMes} dias del mes`;
+      await this.registrar(gym, pantalla.id, codigo, 'denegado', motivo, idCliente);
+      return { permitido: false, motivo, plan: plan.nombre };
     }
 
     // 7. Pase. Se guarda lo que vale esta visita para el gimnasio: su precio
@@ -163,8 +180,22 @@ export class AccessService {
       cliente: cliente[0]?.nombre,
       gimnasio: gimnasio?.nombre,
       plan: plan.nombre,
-      visitasRestantesHoy: plan.visitasPorDia - (visitasHoy + 1),
+      visitasRestantesHoy: 0,
+      diasRestantesMes: diasRestantesMes === null ? null : diasRestantesMes - 1,
     };
+  }
+
+  /** Dias distintos del mes en que el socio entro a algun gimnasio. */
+  private async diasUsadosDelMes(idCliente: number): Promise<number> {
+    const [fila] = await this.accesos.manager.query(
+      `SELECT COUNT(DISTINCT DATE(registrado_en)) AS dias
+       FROM accesos
+       WHERE id_cliente = ? AND resultado = 'permitido'
+         AND MONTH(registrado_en) = MONTH(CURDATE())
+         AND YEAR(registrado_en) = YEAR(CURDATE())`,
+      [idCliente],
+    );
+    return Number(fila?.dias || 0);
   }
 
   /** Cifras y grafica del dashboard. */
