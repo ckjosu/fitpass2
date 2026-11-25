@@ -426,3 +426,113 @@ tr.fp-row-denied td:first-child {
 :root[data-tema='oscuro'][data-acento='azul']   { --fp-orange-light: rgba(37, 99, 235, 0.18); }
 :root[data-tema='oscuro'][data-acento='verde']  { --fp-orange-light: rgba(22, 163, 74, 0.18); }
 :root[data-tema='oscuro'][data-acento='morado'] { --fp-orange-light: rgba(124, 58, 237, 0.20); }
+
+
+/* ==========================================================================
+   Gymred 2 — capa final del diseño nuevo (negro + rojo).
+   Va al final para ganarle a las reglas de arriba sin tocarlas una por una.
+   ========================================================================== */
+
+/* ---- Tarjetas ---- */
+.fp-card {
+  border-radius: 16px;
+  padding: 24px;
+}
+.fp-card h3 { font-size: 17px; margin-bottom: 4px; }
+.fp-card .fp-card-sub { font-size: 13px; margin-bottom: 20px; }
+
+/* ---- Botones tipo píldora ---- */
+.fp-btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  justify-content: center;
+}
+.fp-btn-primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--fp-orange); }
+.fp-btn-secondary { border: 1px solid var(--fp-gray-border); }
+.fp-btn-secondary:hover:not(:disabled) { border-color: var(--fp-gray-soft); background: var(--fp-hover); }
+
+/* ---- Formularios: todos los campos del panel, estén o no en .fp-field ---- */
+.fp-main input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+.fp-main select,
+.fp-main textarea,
+.fp-field input, .fp-field select, .fp-field textarea {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--fp-gray-border);
+  background: var(--fp-gray-bg);
+  color: var(--fp-carbon);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fp-main textarea { min-height: 96px; }
+.fp-main input:focus, .fp-main select:focus, .fp-main textarea:focus,
+.fp-field input:focus, .fp-field select:focus, .fp-field textarea:focus {
+  border-color: var(--fp-orange);
+  box-shadow: var(--fp-ring);
+}
+.fp-field label { font-size: 13px; font-weight: 500; color: var(--fp-gray-mid); }
+input[type='checkbox'], input[type='radio'] { accent-color: var(--fp-orange); width: 18px; height: 18px; }
+
+/* ---- Tablas: encabezado en banda, filas altas, números alineados ---- */
+table.fp-table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+table.fp-table th {
+  background: var(--fp-gray-bg);
+  color: var(--fp-gray-mid);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 11px 16px;
+  border-bottom: none;
+}
+table.fp-table th:first-child { border-radius: 10px 0 0 10px; padding-left: 16px; }
+table.fp-table th:last-child { border-radius: 0 10px 10px 0; padding-right: 16px; }
+table.fp-table td {
+  padding: 15px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--fp-line-soft);
+}
+table.fp-table td:first-child { padding-left: 16px; font-weight: 500; }
+table.fp-table td:last-child { padding-right: 16px; }
+table.fp-table tbody tr:hover td { background: var(--fp-hover); }
+table.fp-table tbody tr:hover td:first-child { border-radius: 10px 0 0 10px; }
+table.fp-table tbody tr:hover td:last-child { border-radius: 0 10px 10px 0; }
+table.fp-table td strong { color: var(--fp-carbon); font-weight: 700; }
+
+/* Las tablas anchas se desplazan dentro de su tarjeta en pantallas chicas */
+.fp-card:has(> table.fp-table) { overflow-x: auto; }
+
+/* ---- Avatares ---- */
+.fp-avatar {
+  border-radius: 10px;
+  background: var(--fp-ink-soft);
+  border: none;
+  color: var(--fp-carbon);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* ---- Mensajes y vacíos ---- */
+.fp-empty {
+  border: 1px dashed var(--fp-gray-border);
+  border-radius: 12px;
+  padding: 28px 16px;
+  color: var(--fp-gray-mid);
+}
+.fp-error, .fp-ok { border-radius: 12px; }
+
+/* ---- Cifras grandes de las tarjetas de cada página ---- */
+.stat-value, .kpi, .precio-valor, .promedio-valor, .indicador-valor {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.stat-label { font-size: 13px; color: var(--fp-gray-mid); }
+
+/* ---- Subtítulo de página ---- */
+.subtitle { font-size: 14.5px; margin-top: 6px; }
+
+/* ---- Barra de desplazamiento discreta en oscuro ---- */
+:root[data-tema='oscuro'] { scrollbar-color: #2A2E35 transparent; }

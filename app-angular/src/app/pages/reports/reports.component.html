@@ -26,7 +26,7 @@
       <div class="bars" *ngIf="visitasPorMes.length > 0">
         <div class="bar-col" *ngFor="let m of visitasPorMes">
           <span class="bar-valor">{{ m.valor }}</span>
-          <div class="bar" [style.height.%]="altura(m.valor, maxMes)"></div>
+          <div class="bar" [class.top]="m.valor === maxMes" [style.height.%]="altura(m.valor, maxMes)"></div>
           <span class="bar-etiqueta">{{ m.etiqueta }}</span>
         </div>
       </div>
@@ -39,7 +39,7 @@
       <div class="bars" *ngIf="visitasPorDia.length > 0">
         <div class="bar-col" *ngFor="let d2 of visitasPorDia">
           <span class="bar-valor">{{ d2.valor }}</span>
-          <div class="bar bar-blue" [style.height.%]="altura(d2.valor, maxDia)"></div>
+          <div class="bar" [class.top]="d2.valor === maxDia" [style.height.%]="altura(d2.valor, maxDia)"></div>
           <span class="bar-etiqueta">{{ d2.etiqueta }}</span>
         </div>
       </div>

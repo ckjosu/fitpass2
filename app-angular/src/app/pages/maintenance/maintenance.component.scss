@@ -89,7 +89,8 @@ label.add-photo:hover {
   position: sticky;
   bottom: 0;
   padding: 14px 0 4px;
-  background: linear-gradient(180deg, rgba(246,246,248,0), var(--fp-gray-bg) 45%);
+  background: var(--fp-gray-bg);
+  border-top: 1px solid var(--fp-gray-border);
 }
 
 .ubicacion-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
