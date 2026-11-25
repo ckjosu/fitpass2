@@ -56,33 +56,23 @@
 </form>
 
 <ng-container *ngIf="datos as d">
-  <div class="fp-grid-3">
-    <div class="fp-card conteo" data-tono="pendiente">
-      <span class="cifra">{{ d.resumen.pendientes }}</span>
-      <div><p class="k">Pendientes</p><p class="n">sin atender</p></div>
-    </div>
-    <div class="fp-card conteo" data-tono="progreso">
-      <span class="cifra">{{ d.resumen.enProgreso }}</span>
-      <div><p class="k">En progreso</p><p class="n">ya se están atendiendo</p></div>
-    </div>
-    <div class="fp-card conteo" data-tono="resuelto">
-      <span class="cifra">{{ d.resumen.resueltos }}</span>
-      <div><p class="k">Resueltos</p><p class="n">historial</p></div>
-    </div>
-  </div>
-
-  <div class="fp-card">
-    <div class="filtros">
-      <div class="filtro">
-        <label for="fs">Situación</label>
-        <select id="fs" [(ngModel)]="filtroSituacion" [ngModelOptions]="{standalone:true}" (ngModelChange)="cargar()">
-          <option value="">Todas</option>
-          <option value="pendiente">Pendientes</option>
-          <option value="en_progreso">En progreso</option>
-          <option value="resuelto">Resueltos</option>
-        </select>
+  <section class="fp-card tabla-card" aria-label="Reportes">
+    <div class="barra-filtros">
+      <div class="pestanas" role="tablist" aria-label="Situación">
+        <button type="button" role="tab" [attr.aria-selected]="filtroSituacion === 'pendiente'" [class.activa]="filtroSituacion === 'pendiente'" (click)="filtroSituacion = 'pendiente'; cargar()">
+          <span class="punto pendiente"></span>Pendientes <span class="num">{{ d.resumen.pendientes }}</span>
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="filtroSituacion === 'en_progreso'" [class.activa]="filtroSituacion === 'en_progreso'" (click)="filtroSituacion = 'en_progreso'; cargar()">
+          <span class="punto progreso"></span>En progreso <span class="num">{{ d.resumen.enProgreso }}</span>
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="filtroSituacion === 'resuelto'" [class.activa]="filtroSituacion === 'resuelto'" (click)="filtroSituacion = 'resuelto'; cargar()">
+          <span class="punto resuelto"></span>Resueltos <span class="num">{{ d.resumen.resueltos }}</span>
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="filtroSituacion === ''" [class.activa]="filtroSituacion === ''" (click)="filtroSituacion = ''; cargar()">
+          Todos
+        </button>
       </div>
-      <div class="filtro">
+      <div class="prioridad">
         <label for="fp">Prioridad</label>
         <select id="fp" [(ngModel)]="filtroPrioridad" [ngModelOptions]="{standalone:true}" (ngModelChange)="cargar()">
           <option value="">Todas</option>
@@ -98,40 +88,51 @@
       No hay reportes que coincidan con el filtro.
     </p>
 
-    <div class="reporte" *ngFor="let i of d.incidencias" [attr.data-prioridad]="i.prioridad">
-      <div class="info">
-        <div class="linea">
-          <span class="equipo">{{ i.equipo }}</span>
-          <span class="fp-badge"
-                [class.fp-badge-red]="i.prioridad === 'alta'"
-                [class.fp-badge-orange]="i.prioridad === 'media'"
-                [class.fp-badge-blue]="i.prioridad === 'baja'">
-            Prioridad {{ i.prioridad }}
-          </span>
-          <span class="fp-badge"
-                [class.fp-badge-orange]="i.situacion === 'pendiente'"
-                [class.fp-badge-blue]="i.situacion === 'en_progreso'"
-                [class.fp-badge-green]="i.situacion === 'resuelto'">
-            {{ etiquetaSituacion(i.situacion) }}
-          </span>
-        </div>
-        <p class="titulo">{{ i.titulo }}</p>
-        <p class="detalle" *ngIf="i.descripcion">{{ i.descripcion }}</p>
-        <p class="fecha">
-          Reportado el {{ i.creadoEn | date: 'd \'de\' MMMM' }}
-          <span *ngIf="i.resueltoEn"> · resuelto el {{ i.resueltoEn | date: 'd \'de\' MMMM' }}</span>
-        </p>
-      </div>
-
-      <div class="acciones-fila">
-        <button class="fp-btn fp-btn-secondary" *ngIf="i.situacion === 'pendiente'"
-                (click)="cambiarSituacion(i, 'en_progreso')">Atender</button>
-        <button class="fp-btn fp-btn-primary" *ngIf="i.situacion !== 'resuelto'"
-                (click)="cambiarSituacion(i, 'resuelto')">Marcar resuelto</button>
-        <button class="fp-btn fp-btn-secondary" *ngIf="i.situacion === 'resuelto'"
-                (click)="cambiarSituacion(i, 'pendiente')">Reabrir</button>
-        <button class="fp-btn fp-btn-secondary borrar" (click)="borrar(i)">Eliminar</button>
-      </div>
-    </div>
-  </div>
+    <table class="fp-table reportes" *ngIf="!cargando && d.incidencias.length > 0">
+      <thead>
+        <tr><th>Equipo y problema</th><th>Prioridad</th><th>Reportado</th><th>Estado</th><th class="der">Acciones</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of d.incidencias" [attr.data-prioridad]="i.prioridad">
+          <td class="problema">
+            <p class="equipo">{{ i.equipo }}</p>
+            <p class="titulo">{{ i.titulo }}</p>
+            <p class="detalle" *ngIf="i.descripcion">{{ i.descripcion }}</p>
+          </td>
+          <td>
+            <span class="prio" [attr.data-p]="i.prioridad">
+              <span class="barras"><i></i><i></i><i></i></span>{{ i.prioridad | titlecase }}
+            </span>
+          </td>
+          <td class="fecha">
+            {{ i.creadoEn | date: 'd MMM' }}
+            <span *ngIf="i.resueltoEn" class="resuelto-en">resuelto {{ i.resueltoEn | date: 'd MMM' }}</span>
+          </td>
+          <td>
+            <span class="fp-badge"
+                  [class.fp-badge-orange]="i.situacion === 'pendiente'"
+                  [class.fp-badge-blue]="i.situacion === 'en_progreso'"
+                  [class.fp-badge-green]="i.situacion === 'resuelto'">
+              {{ etiquetaSituacion(i.situacion) }}
+            </span>
+          </td>
+          <td class="der">
+            <div class="acciones-fila">
+              <button class="fp-btn fp-btn-secondary fp-btn-sm" *ngIf="i.situacion === 'pendiente'"
+                      (click)="cambiarSituacion(i, 'en_progreso')">Atender</button>
+              <button class="fp-btn fp-btn-primary fp-btn-sm" *ngIf="i.situacion !== 'resuelto'"
+                      (click)="cambiarSituacion(i, 'resuelto')">Resuelto</button>
+              <button class="fp-btn fp-btn-secondary fp-btn-sm" *ngIf="i.situacion === 'resuelto'"
+                      (click)="cambiarSituacion(i, 'pendiente')">Reabrir</button>
+              <button class="fp-icon-btn borrar" (click)="borrar(i)" aria-label="Eliminar reporte" title="Eliminar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
 </ng-container>

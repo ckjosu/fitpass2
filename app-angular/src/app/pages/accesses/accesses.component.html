@@ -1,34 +1,38 @@
-<div>
-  <h1 class="fp-heading">Historial de accesos</h1>
-  <p class="subtitle">Cada código QR leído en la entrada queda aquí, permitido o denegado</p>
+<div class="cabecera">
+  <div>
+    <h1 class="fp-heading">Historial de accesos</h1>
+    <p class="subtitle">Cada código QR leído en la entrada queda aquí, permitido o denegado</p>
+  </div>
 </div>
 
 <p class="fp-error" *ngIf="error">{{ error }}</p>
 
-<div class="fp-card">
-  <div class="filter-row">
-    <div class="filtro">
-      <label for="desde">Desde</label>
-      <input id="desde" type="date" [(ngModel)]="desde" />
+<section class="fp-card tabla-card" aria-label="Accesos">
+  <div class="barra-filtros">
+    <div class="pestanas" role="tablist" aria-label="Resultado">
+      <button type="button" role="tab" [attr.aria-selected]="resultado === ''" [class.activa]="resultado === ''" (click)="resultado = ''; filtrar()">Todos</button>
+      <button type="button" role="tab" [attr.aria-selected]="resultado === 'permitido'" [class.activa]="resultado === 'permitido'" (click)="resultado = 'permitido'; filtrar()">
+        <span class="punto ok"></span>Permitidos
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="resultado === 'denegado'" [class.activa]="resultado === 'denegado'" (click)="resultado = 'denegado'; filtrar()">
+        <span class="punto malo"></span>Denegados
+      </button>
     </div>
-    <div class="filtro">
-      <label for="hasta">Hasta</label>
-      <input id="hasta" type="date" [(ngModel)]="hasta" />
+
+    <div class="buscador">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+      <label for="buscar" class="oculto">Buscar</label>
+      <input id="buscar" type="search" placeholder="Socio o código QR" [(ngModel)]="buscar" (keyup.enter)="filtrar()" />
     </div>
-    <div class="filtro">
-      <label for="resultado">Resultado</label>
-      <select id="resultado" [(ngModel)]="resultado">
-        <option value="">Todos</option>
-        <option value="permitido">Permitidos</option>
-        <option value="denegado">Denegados</option>
-      </select>
-    </div>
-    <div class="filtro crecer">
-      <label for="buscar">Buscar</label>
-      <input id="buscar" type="text" placeholder="Nombre del socio o código QR" [(ngModel)]="buscar" />
-    </div>
-    <button class="fp-btn fp-btn-primary" (click)="filtrar()">Filtrar</button>
-    <button class="fp-btn fp-btn-secondary" (click)="limpiar()">Limpiar</button>
+  </div>
+
+  <div class="fechas">
+    <label for="desde">Desde</label>
+    <input id="desde" type="date" [(ngModel)]="desde" />
+    <label for="hasta">hasta</label>
+    <input id="hasta" type="date" [(ngModel)]="hasta" />
+    <button class="fp-btn fp-btn-primary fp-btn-sm" (click)="filtrar()">Aplicar</button>
+    <button class="fp-btn fp-btn-secondary fp-btn-sm" (click)="limpiar()">Limpiar</button>
   </div>
 
   <p class="fp-loading" *ngIf="cargando">Cargando accesos...</p>
@@ -38,18 +42,21 @@
 
   <table class="fp-table" *ngIf="!cargando && filas.length > 0">
     <thead>
-      <tr><th>Miembro</th><th>Fecha y hora</th><th>Código QR leído</th><th>Estado</th></tr>
+      <tr><th>Socio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr>
     </thead>
     <tbody>
       <tr *ngFor="let a of filas" [class.fp-row-denied]="a.resultado === 'denegado'">
         <td>
           <div class="fp-person">
             <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
-            <span>{{ a.cliente || 'Sin identificar' }}</span>
+            <div>
+              <p class="nombre">{{ a.cliente || 'Sin identificar' }}</p>
+              <p class="codigo">{{ a.codigoLeido }}</p>
+            </div>
           </div>
         </td>
-        <td>{{ a.registradoEn | date: 'dd/MM/yyyy h:mm a' }}</td>
-        <td class="codigo">{{ a.codigoLeido }}</td>
+        <td>{{ a.registradoEn | date: 'EEE d MMM' }}</td>
+        <td class="hora">{{ a.registradoEn | date: 'h:mm a' }}</td>
         <td>
           <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'">
             {{ a.resultado === 'permitido' ? 'Permitido' : (a.motivo || 'Denegado') }}
@@ -60,10 +67,15 @@
   </table>
 
   <div class="paginacion" *ngIf="!cargando && total > 0">
-    <span>{{ total }} accesos · página {{ pagina }} de {{ paginas }}</span>
-    <div>
-      <button class="fp-btn fp-btn-secondary" (click)="irA(pagina - 1)" [disabled]="pagina === 1">Anterior</button>
-      <button class="fp-btn fp-btn-secondary" (click)="irA(pagina + 1)" [disabled]="pagina === paginas">Siguiente</button>
+    <span>{{ total }} accesos</span>
+    <div class="paginas">
+      <button class="fp-icon-btn" (click)="irA(pagina - 1)" [disabled]="pagina === 1" aria-label="Página anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+      </button>
+      <span class="pagina-actual">{{ pagina }} / {{ paginas }}</span>
+      <button class="fp-icon-btn" (click)="irA(pagina + 1)" [disabled]="pagina === paginas" aria-label="Página siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+      </button>
     </div>
   </div>
-</div>
+</section>

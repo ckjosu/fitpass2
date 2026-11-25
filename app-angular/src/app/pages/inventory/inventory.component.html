@@ -61,47 +61,70 @@
 </form>
 
 <ng-container *ngIf="datos as d">
-  <div class="fp-grid-3">
-    <div class="fp-card conteo" data-tono="total">
-      <span class="cifra">{{ d.resumen.total }}</span>
-      <div><p class="k">En el inventario</p><p class="n">equipos y actividades</p></div>
+  <section class="fp-card resumen" aria-label="Resumen del inventario">
+    <div class="dato">
+      <p class="k">En el inventario</p>
+      <p class="v">{{ d.resumen.total }}</p>
     </div>
-    <div class="fp-card conteo" data-tono="ok">
-      <span class="cifra">{{ d.resumen.disponibles }}</span>
-      <div><p class="k">Disponibles</p><p class="n">se ven en la app</p></div>
+    <div class="dato">
+      <p class="k"><span class="punto ok"></span>Disponibles</p>
+      <p class="v">{{ d.resumen.disponibles }}</p>
     </div>
-    <div class="fp-card conteo" data-tono="malo">
-      <span class="cifra">{{ d.resumen.fueraDeServicio }}</span>
-      <div><p class="k">Fuera de servicio</p><p class="n">ocultos en la app</p></div>
+    <div class="dato">
+      <p class="k"><span class="punto malo"></span>Fuera de servicio</p>
+      <p class="v">{{ d.resumen.fueraDeServicio }}</p>
     </div>
-  </div>
+    <div class="barra-estado" *ngIf="d.resumen.total > 0">
+      <p class="k">{{ (d.resumen.disponibles / d.resumen.total) * 100 | number: '1.0-0' }}% se ve en la app</p>
+      <div class="barra">
+        <span class="lleno" [style.width.%]="(d.resumen.disponibles / d.resumen.total) * 100"></span>
+      </div>
+    </div>
+  </section>
 
   <p class="fp-loading" *ngIf="cargando">Cargando inventario...</p>
   <p class="fp-empty" *ngIf="!cargando && d.grupos.length === 0">
     Todavía no registras nada. Empieza por lo que más usan tus socios.
   </p>
 
-  <div class="fp-card" *ngFor="let g of d.grupos">
-    <h3>{{ g.etiqueta }}</h3>
-    <p class="fp-card-sub">{{ g.equipos.length }} en esta categoría</p>
-
-    <div class="equipo" *ngFor="let e of g.equipos" [class.apagado]="e.situacion === 'fuera_de_servicio'">
-      <div class="cantidad">{{ e.cantidad }}</div>
-      <div class="info">
-        <p class="nombre">{{ e.nombre }}</p>
-        <p class="detalle" *ngIf="e.descripcion">{{ e.descripcion }}</p>
-      </div>
-      <span class="fp-badge"
-            [class.fp-badge-green]="e.situacion === 'disponible'"
-            [class.fp-badge-red]="e.situacion === 'fuera_de_servicio'">
-        {{ e.situacion === 'disponible' ? 'Disponible' : 'Fuera de servicio' }}
-      </span>
-      <div class="botones">
-        <button class="fp-btn fp-btn-secondary" (click)="alternar(e)">
-          {{ e.situacion === 'disponible' ? 'Marcar fuera de servicio' : 'Volver a habilitar' }}
-        </button>
-        <button class="fp-btn fp-btn-secondary borrar" (click)="borrar(e)">Eliminar</button>
-      </div>
-    </div>
-  </div>
+  <section class="fp-card tabla-card" *ngIf="d.grupos.length > 0" aria-label="Equipo registrado">
+    <table class="fp-table inventario">
+      <thead>
+        <tr><th>Equipo</th><th class="num">Cantidad</th><th>Estado</th><th class="der">Acciones</th></tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let g of d.grupos">
+          <tr class="grupo">
+            <td colspan="4"><span>{{ g.etiqueta }}</span><span class="cuenta">{{ g.equipos.length }}</span></td>
+          </tr>
+          <tr *ngFor="let e of g.equipos" [class.apagado]="e.situacion === 'fuera_de_servicio'">
+            <td>
+              <p class="nombre">{{ e.nombre }}</p>
+              <p class="detalle" *ngIf="e.descripcion">{{ e.descripcion }}</p>
+            </td>
+            <td class="num"><span class="cantidad">{{ e.cantidad }}</span></td>
+            <td>
+              <span class="fp-badge"
+                    [class.fp-badge-green]="e.situacion === 'disponible'"
+                    [class.fp-badge-red]="e.situacion === 'fuera_de_servicio'">
+                {{ e.situacion === 'disponible' ? 'Disponible' : 'Fuera de servicio' }}
+              </span>
+            </td>
+            <td class="der">
+              <div class="botones">
+                <button class="fp-btn fp-btn-secondary fp-btn-sm" (click)="alternar(e)">
+                  {{ e.situacion === 'disponible' ? 'Fuera de servicio' : 'Habilitar' }}
+                </button>
+                <button class="fp-icon-btn borrar" (click)="borrar(e)" [attr.aria-label]="'Eliminar ' + e.nombre" title="Eliminar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </section>
 </ng-container>
