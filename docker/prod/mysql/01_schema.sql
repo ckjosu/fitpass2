@@ -358,8 +358,8 @@ CREATE TABLE incidencias (
 -- ---------------------------------------------------------------------
 CREATE TABLE configuracion_gimnasio (
   id_gimnasio          INT UNSIGNED PRIMARY KEY,
-  tema                 ENUM('claro','oscuro') NOT NULL DEFAULT 'claro',
-  color_acento         ENUM('naranja','azul','verde','morado') NOT NULL DEFAULT 'naranja',
+  tema                 ENUM('claro','oscuro') NOT NULL DEFAULT 'oscuro',
+  color_acento         ENUM('rojo','naranja','azul','verde','morado') NOT NULL DEFAULT 'rojo',
   modo_validacion      ENUM('en_linea','tolerancia_sin_conexion') NOT NULL DEFAULT 'en_linea',
   tolerancia_segundos  SMALLINT UNSIGNED NOT NULL DEFAULT 300,
   avisar_por_correo    BOOLEAN NOT NULL DEFAULT TRUE,

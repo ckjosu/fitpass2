@@ -6,7 +6,7 @@
 .conteo .cifra {
   width: 52px; height: 52px; border-radius: 14px;
   display: grid; place-items: center;
-  font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 20px;
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px;
   flex: none;
 }
 .conteo[data-tono='pendiente'] .cifra { background: var(--fp-orange-light); color: var(--fp-orange-dark); }
@@ -41,7 +41,7 @@
 .reporte[data-prioridad='baja']::before { background: var(--fp-gray-border); }
 
 .linea { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-.equipo { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14.5px; }
+.equipo { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 14.5px; }
 .titulo { font-size: 14px; margin: 7px 0 0; }
 .detalle { font-size: 13px; color: var(--fp-gray-mid); margin: 4px 0 0; max-width: 70ch; }
 .fecha { font-size: 12px; color: var(--fp-gray-soft); margin: 7px 0 0; }

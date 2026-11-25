@@ -5,7 +5,7 @@
 .conteo .cifra {
   width: 52px; height: 52px; border-radius: 14px;
   display: grid; place-items: center;
-  font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 20px; flex: none;
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; flex: none;
 }
 .conteo[data-tono='total'] .cifra { background: var(--fp-gray-bg); color: var(--fp-gray-mid); }
 .conteo[data-tono='ok'] .cifra { background: var(--fp-green-light); color: var(--fp-on-green); }
@@ -24,7 +24,7 @@
   width: 34px; height: 34px; border-radius: 10px; flex: none;
   display: grid; place-items: center;
   background: var(--fp-gray-bg); border: 1px solid var(--fp-gray-border);
-  font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 13px;
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13px;
   color: var(--fp-gray-mid);
 }
 .info { flex: 1; min-width: 0; }

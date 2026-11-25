@@ -1,7 +1,8 @@
 /* ==========================================================================
    Gymred — Panel Web — Estilos globales / design tokens
-   Tipografia: Poppins (titulos) + Inter (texto)
-   Paleta: naranja energia, azul confianza, negro carbon
+   Tipografia: Archivo (titulos y cifras) + Inter (texto)
+   Diseño por defecto: tema oscuro (negro) con acento rojo Gymred.
+   El acento se llama --fp-orange por historia; hoy es el color de marca.
    ========================================================================== */
 
 :root {
@@ -53,6 +54,9 @@
   --fp-shadow: 0 1px 2px rgba(20, 20, 22, 0.05), 0 4px 12px rgba(20, 20, 22, 0.05);
   --fp-shadow-lg: 0 2px 4px rgba(20, 20, 22, 0.04), 0 12px 32px rgba(20, 20, 22, 0.10);
   --fp-ring: 0 0 0 3px rgba(234, 88, 12, 0.18);
+
+  /* Texto encima del boton principal */
+  --fp-on-accent: #FFFFFF;
 }
 
 * { box-sizing: border-box; }
@@ -70,7 +74,7 @@ html, body {
 }
 
 h1, h2, h3, h4, .fp-heading {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Archivo', sans-serif;
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.015em;
@@ -163,8 +167,8 @@ h1, .fp-heading { font-size: 26px; line-height: 1.2; }
 }
 .fp-btn-primary {
   background: var(--fp-orange);
-  color: var(--fp-white);
-  box-shadow: 0 1px 2px rgba(194, 65, 12, 0.35);
+  color: var(--fp-on-accent);
+  box-shadow: none;
 }
 .fp-btn-primary:hover:not(:disabled) { background: var(--fp-orange-dark); }
 .fp-btn-secondary {
@@ -210,31 +214,33 @@ h1, .fp-heading { font-size: 26px; line-height: 1.2; }
 .fp-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 11px;
-  border-radius: var(--fp-radius-pill);
-  font-size: 12px;
-  font-weight: 600;
+  gap: 7px;
+  padding: 0;
+  background: none;
+  color: var(--fp-carbon);
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
 }
+/* El color va solo en el punto; el texto se queda neutro para que se lea bien */
 .fp-badge::before {
   content: '';
-  width: 6px; height: 6px;
+  width: 7px; height: 7px;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--fp-gray-soft);
   flex: none;
 }
-.fp-badge-orange { background: var(--fp-orange-light); color: var(--fp-orange-dark); }
-.fp-badge-blue   { background: var(--fp-blue-light);   color: var(--fp-blue-dark); }
-.fp-badge-green  { background: var(--fp-green-light);  color: var(--fp-on-green); }
-.fp-badge-red    { background: var(--fp-red-light);    color: var(--fp-on-red); }
+.fp-badge-orange::before { background: var(--fp-orange); }
+.fp-badge-blue::before   { background: var(--fp-blue); }
+.fp-badge-green::before  { background: var(--fp-green); }
+.fp-badge-red::before    { background: var(--fp-red); }
 
 /* Avatar de iniciales, se usa en tablas y encabezados */
 .fp-avatar {
   width: 32px; height: 32px;
   border-radius: 10px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Archivo', sans-serif;
   font-weight: 700;
   font-size: 11.5px;
   background: var(--fp-gray-bg);
@@ -335,17 +341,19 @@ tr.fp-row-denied td:first-child {
    Tema oscuro. Se activa poniendo data-tema="oscuro" en <html>.
    ========================================================================== */
 :root[data-tema='oscuro'] {
-  --fp-carbon: #F3F3F6;
-  --fp-white: #141418;
-  --fp-gray-bg: #0B0B0E;
-  --fp-gray-mid: #9A9AA6;
-  --fp-gray-soft: #6E6E7A;
-  --fp-gray-border: #26262E;
-  --fp-ink: #070709;
-  --fp-ink-soft: #1B1B21;
+  --fp-carbon: #F2F3F5;
+  --fp-white: #121418;        /* tarjetas */
+  --fp-gray-bg: #0A0B0D;      /* fondo de la pagina */
+  --fp-gray-mid: #9BA0A8;
+  --fp-gray-soft: #6B7078;
+  --fp-gray-border: #1F2227;
+  --fp-ink: #0E1013;          /* sidebar */
+  --fp-ink-soft: #1A1D21;
 
-  --fp-line-soft: #212128;
-  --fp-hover: #1A1A20;
+  --fp-line-soft: #1A1D21;
+  --fp-hover: #16191D;
+  --fp-green: #4ADE80;
+  --fp-red: #F87171;
 
   /* Los fondos tenues dejan de ser crema y pasan a ser el acento translucido */
   --fp-orange-light: rgba(234, 88, 12, 0.16);
@@ -369,6 +377,8 @@ tr.fp-row-denied td:first-child {
   --fp-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.55);
 }
 
+:root[data-tema='oscuro'] .fp-btn-danger { color: #0A0B0D; }
+
 :root[data-tema='oscuro'] input,
 :root[data-tema='oscuro'] select,
 :root[data-tema='oscuro'] textarea { color-scheme: dark; }
@@ -376,6 +386,20 @@ tr.fp-row-denied td:first-child {
 /* ==========================================================================
    Color de acento. Se elige en Configuracion y se guarda por gimnasio.
    ========================================================================== */
+:root[data-acento='rojo'] {
+  --fp-orange: #DC2626;
+  --fp-orange-dark: #B91C1C;
+  --fp-orange-light: #FEE2E2;
+  --fp-ring: 0 0 0 3px rgba(220, 38, 38, 0.22);
+}
+/* En oscuro el rojo sube un tono y el texto del boton va en negro (contraste 5:1) */
+:root[data-tema='oscuro'][data-acento='rojo'] {
+  --fp-orange: #EF4444;
+  --fp-orange-dark: #DC2626;
+  --fp-orange-light: rgba(239, 68, 68, 0.14);
+  --fp-ring: 0 0 0 3px rgba(239, 68, 68, 0.28);
+  --fp-on-accent: #0A0B0D;
+}
 :root[data-acento='azul'] {
   --fp-orange: #2563EB;
   --fp-orange-dark: #1D4ED8;

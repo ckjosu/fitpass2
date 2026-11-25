@@ -30,6 +30,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   exito = '';
 
   acentos = [
+    { valor: 'rojo', etiqueta: 'Rojo Gymred', color: '#EF4444' },
     { valor: 'naranja', etiqueta: 'Naranja', color: '#EA580C' },
     { valor: 'azul', etiqueta: 'Azul', color: '#2563EB' },
     { valor: 'verde', etiqueta: 'Verde', color: '#16A34A' },
@@ -37,8 +38,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ];
 
   form = this.fb.nonNullable.group({
-    tema: ['claro'],
-    colorAcento: ['naranja'],
+    tema: ['oscuro'],
+    colorAcento: ['rojo'],
     modoValidacion: ['en_linea'],
     toleranciaSegundos: [300],
     avisarPorCorreo: [true],

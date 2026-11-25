@@ -18,8 +18,8 @@ export class SettingsService {
       fila = await this.config.save(
         this.config.create({
           idGimnasio,
-          tema: 'claro',
-          colorAcento: 'naranja',
+          tema: 'oscuro',
+          colorAcento: 'rojo',
           modoValidacion: 'en_linea',
           toleranciaSegundos: 300,
           avisarPorCorreo: true,

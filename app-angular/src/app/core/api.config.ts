@@ -303,7 +303,7 @@ export interface RespuestaIncidencias {
 export interface Configuracion {
   idGimnasio: number;
   tema: 'claro' | 'oscuro';
-  colorAcento: 'naranja' | 'azul' | 'verde' | 'morado';
+  colorAcento: 'rojo' | 'naranja' | 'azul' | 'verde' | 'morado';
   modoValidacion: 'en_linea' | 'tolerancia_sin_conexion';
   toleranciaSegundos: number;
   avisarPorCorreo: boolean;

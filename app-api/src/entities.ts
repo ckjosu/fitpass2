@@ -272,7 +272,7 @@ export class Incidencia {
 export class ConfiguracionGimnasio {
   @PrimaryColumn({ name: 'id_gimnasio', unsigned: true }) idGimnasio: number;
   @Column() tema: 'claro' | 'oscuro';
-  @Column({ name: 'color_acento' }) colorAcento: 'naranja' | 'azul' | 'verde' | 'morado';
+  @Column({ name: 'color_acento' }) colorAcento: 'rojo' | 'naranja' | 'azul' | 'verde' | 'morado';
   @Column({ name: 'modo_validacion' }) modoValidacion: 'en_linea' | 'tolerancia_sin_conexion';
   @Column({ name: 'tolerancia_segundos' }) toleranciaSegundos: number;
   @Column({ name: 'avisar_por_correo' }) avisarPorCorreo: boolean;

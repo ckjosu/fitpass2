@@ -15,25 +15,8 @@
   justify-content: space-between;
   overflow: hidden;
 }
-/* Luz naranja arriba y azul abajo, sin llegar a wash de gradiente */
-.brand::before,
-.brand::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  pointer-events: none;
-}
-.brand::before {
-  width: 420px; height: 420px;
-  top: -150px; right: -120px;
-  background: rgba(234, 88, 12, 0.32);
-}
-.brand::after {
-  width: 360px; height: 360px;
-  bottom: -160px; left: -100px;
-  background: rgba(37, 99, 235, 0.22);
-}
+/* Sin luces ni degradados: fondo liso como el resto del panel */
+.brand { border-right: 1px solid rgba(255, 255, 255, 0.06); }
 .brand > * { position: relative; z-index: 1; }
 
 .logo-row { display: flex; align-items: center; gap: 12px; }
@@ -41,13 +24,13 @@
   width: 40px; height: 40px;
   border-radius: 12px;
   background: var(--fp-orange);
-  color: #fff;
+  color: var(--fp-on-accent);
   display: flex; align-items: center; justify-content: center;
   flex: none;
 }
 .logo-icon svg { width: 22px; height: 22px; }
 .wordmark {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Archivo', sans-serif;
   font-weight: 700;
   font-size: 21px;
   letter-spacing: -0.02em;

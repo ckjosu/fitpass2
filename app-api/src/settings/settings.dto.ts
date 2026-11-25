@@ -5,9 +5,9 @@ export class ConfiguracionDto {
   @ApiPropertyOptional({ enum: ['claro', 'oscuro'] })
   @IsOptional() @IsIn(['claro', 'oscuro']) tema?: 'claro' | 'oscuro';
 
-  @ApiPropertyOptional({ enum: ['naranja', 'azul', 'verde', 'morado'] })
-  @IsOptional() @IsIn(['naranja', 'azul', 'verde', 'morado'])
-  colorAcento?: 'naranja' | 'azul' | 'verde' | 'morado';
+  @ApiPropertyOptional({ enum: ['rojo', 'naranja', 'azul', 'verde', 'morado'] })
+  @IsOptional() @IsIn(['rojo', 'naranja', 'azul', 'verde', 'morado'])
+  colorAcento?: 'rojo' | 'naranja' | 'azul' | 'verde' | 'morado';
 
   @ApiPropertyOptional({ enum: ['en_linea', 'tolerancia_sin_conexion'] })
   @IsOptional() @IsIn(['en_linea', 'tolerancia_sin_conexion'])

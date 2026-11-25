@@ -27,15 +27,15 @@ export class ThemeService {
   /** Se llama al arrancar la app, antes de pedir nada al servidor. */
   restaurar(): void {
     this.aplicar(
-      localStorage.getItem(LLAVE_TEMA) || 'claro',
-      localStorage.getItem(LLAVE_ACENTO) || 'naranja',
+      localStorage.getItem(LLAVE_TEMA) || 'oscuro',
+      localStorage.getItem(LLAVE_ACENTO) || 'rojo',
     );
   }
 
   limpiar(): void {
     localStorage.removeItem(LLAVE_TEMA);
     localStorage.removeItem(LLAVE_ACENTO);
-    document.documentElement.setAttribute('data-tema', 'claro');
-    document.documentElement.setAttribute('data-acento', 'naranja');
+    document.documentElement.setAttribute('data-tema', 'oscuro');
+    document.documentElement.setAttribute('data-acento', 'rojo');
   }
 }
