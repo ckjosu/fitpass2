@@ -51,16 +51,30 @@
   font-size: 13px;
   color: var(--fp-gray-mid);
 }
+.fechas input { width: 170px; min-height: 40px !important; padding: 8px 12px !important; }
+.fechas input::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
 
-.nombre { margin: 0; font-size: 14px; font-weight: 500; }
+.historial { table-layout: fixed; }
+.historial th:nth-child(1) { width: 46%; }
+.historial th:nth-child(2) { width: 24%; }
+.historial td { padding-top: 12px; padding-bottom: 12px; }
+.historial .fp-avatar { border-radius: 50%; width: 36px; height: 36px; }
+.socio { min-width: 0; }
+.nombre { margin: 0; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .codigo {
   margin: 2px 0 0;
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--fp-gray-soft);
   font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.hora { color: var(--fp-gray-mid); }
+.cuando { display: table-cell; }
+.dia { display: block; font-size: 14px; }
+.hora { display: block; font-size: 12.5px; color: var(--fp-gray-mid); margin-top: 2px; }
+.historial .fp-badge { white-space: normal; }
 
 .paginacion {
   display: flex;

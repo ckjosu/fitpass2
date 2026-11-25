@@ -43,23 +43,25 @@
     No hay accesos que coincidan con el filtro.
   </p>
 
-  <table class="fp-table" *ngIf="!cargando && filas.length > 0">
+  <table class="fp-table historial" *ngIf="!cargando && filas.length > 0">
     <thead>
-      <tr><th>Socio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr>
+      <tr><th>Socio</th><th>Cuándo</th><th>Estado</th></tr>
     </thead>
     <tbody>
-      <tr *ngFor="let a of filas" [class.fp-row-denied]="a.resultado === 'denegado'">
+      <tr *ngFor="let a of filas">
         <td>
           <div class="fp-person">
             <span class="fp-avatar">{{ iniciales(a.cliente) }}</span>
-            <div>
+            <div class="socio">
               <p class="nombre">{{ a.cliente || 'Sin identificar' }}</p>
-              <p class="codigo">{{ a.codigoLeido }}</p>
+              <p class="codigo" [title]="a.codigoLeido">{{ a.codigoLeido }}</p>
             </div>
           </div>
         </td>
-        <td>{{ a.registradoEn | date: 'EEE d MMM' }}</td>
-        <td class="hora">{{ a.registradoEn | date: 'h:mm a' }}</td>
+        <td class="cuando">
+          <span class="dia">{{ a.registradoEn | date: 'EEE d MMM' }}</span>
+          <span class="hora">{{ a.registradoEn | date: 'h:mm a' }}</span>
+        </td>
         <td>
           <span class="fp-badge" [class.fp-badge-green]="a.resultado === 'permitido'" [class.fp-badge-red]="a.resultado === 'denegado'" [class.fp-badge-blue]="a.resultado === 'reingreso'">
             {{ a.resultado === 'permitido' ? 'Permitido' : a.resultado === 'reingreso' ? 'Volvió a entrar' : (a.motivo || 'Denegado') }}

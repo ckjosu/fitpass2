@@ -99,9 +99,11 @@ export class MapPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
       L.control.zoom({ position: 'bottomright', zoomInTitle: 'Acercar', zoomOutTitle: 'Alejar' }).addTo(this.mapa);
       L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(this.mapa);
 
-      this.calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap',
+      // Mapa oscuro (CARTO, datos de OpenStreetMap) para que combine con el panel.
+      this.calles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
       });
       this.satelite = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',

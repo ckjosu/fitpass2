@@ -55,7 +55,7 @@
 
 <div class="mapa-pie">
   <span *ngIf="latitud !== null && longitud !== null; else sinPunto" class="coordenadas">
-    📍 {{ latitud | number: '1.5-5' }}, {{ longitud | number: '1.5-5' }}
+    <span class="punto"></span>{{ latitud | number: '1.5-5' }}, {{ longitud | number: '1.5-5' }}
   </span>
   <ng-template #sinPunto>
     <span class="sin-punto">Todavía no fijas la ubicación de tu gimnasio</span>
