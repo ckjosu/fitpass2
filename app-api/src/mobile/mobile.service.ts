@@ -110,10 +110,13 @@ export class MobileService {
 
     if (!suscripcion) return { activa: false, suscripcion: null };
 
+    // Se cuenta por DIA: 'mes' son los dias distintos con entrada y 'hoy'
+    // es 1 si ya entro hoy (los reingresos no cuentan).
     const [visitas] = await this.dataSource.query(
       `SELECT
-         SUM(DATE(registrado_en)=CURDATE()) AS hoy,
-         SUM(MONTH(registrado_en)=MONTH(CURDATE()) AND YEAR(registrado_en)=YEAR(CURDATE())) AS mes
+         MAX(DATE(registrado_en)=CURDATE()) AS hoy,
+         COUNT(DISTINCT CASE WHEN MONTH(registrado_en)=MONTH(CURDATE())
+               AND YEAR(registrado_en)=YEAR(CURDATE()) THEN DATE(registrado_en) END) AS mes
        FROM accesos WHERE id_cliente = ? AND resultado='permitido'`,
       [idCliente],
     );
@@ -127,7 +130,14 @@ export class MobileService {
         fechaFin: suscripcion.fechaFin,
         visitasHoy: Number(visitas.hoy || 0),
         visitasMes: Number(visitas.mes || 0),
-        visitasRestantesHoy: Math.max(0, suscripcion.plan.visitasPorDia - Number(visitas.hoy || 0)),
+        // Siempre se puede escanear mientras queden dias en el mes: si ya
+        // entro hoy, el escaneo cuenta como reingreso al mismo gimnasio.
+        visitasRestantesHoy:
+          Number(visitas.hoy || 0) > 0 ||
+          !suscripcion.plan.visitasPorMes ||
+          Number(visitas.mes || 0) < suscripcion.plan.visitasPorMes
+            ? 1
+            : 0,
         // null = sin tope al mes
         visitasRestantesMes: suscripcion.plan.visitasPorMes
           ? Math.max(0, suscripcion.plan.visitasPorMes - Number(visitas.mes || 0))

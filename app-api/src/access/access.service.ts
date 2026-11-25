@@ -151,7 +151,7 @@ export class AccessService {
         cliente: clienteHoy[0]?.nombre,
         gimnasio: gimnasioHoy?.nombre,
         plan: plan.nombre,
-        visitasRestantesHoy: 0,
+        visitasRestantesHoy: 1,
         diasRestantesMes,
       };
     }
@@ -180,7 +180,8 @@ export class AccessService {
       cliente: cliente[0]?.nombre,
       gimnasio: gimnasio?.nombre,
       plan: plan.nombre,
-      visitasRestantesHoy: 0,
+      // 1 = puede volver a entrar hoy a este mismo gimnasio
+      visitasRestantesHoy: 1,
       diasRestantesMes: diasRestantesMes === null ? null : diasRestantesMes - 1,
     };
   }
