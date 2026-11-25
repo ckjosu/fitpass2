@@ -17,10 +17,10 @@
   border: 1px solid var(--fp-gray-border);
 }
 .datos { flex: 1; min-width: 240px; }
-.rotulo { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; margin: 0; }
+.rotulo { font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 700; font-size: 20px; margin: 0; }
 .donde { color: var(--fp-gray-mid); font-size: 13.5px; margin: 4px 0 16px; }
 .cuenta { font-size: 14px; margin: 0 0 10px; }
-.cuenta b { font-family: 'Archivo', sans-serif; font-size: 17px; color: var(--fp-orange-dark); }
+.cuenta b { font-family: 'Archivo', sans-serif; font-stretch: 125%; font-size: 17px; color: var(--fp-orange-dark); }
 .codigo {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
   color: var(--fp-gray-soft); margin: 0 0 14px; word-break: break-all;
@@ -34,7 +34,7 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
 }
 .completa .marca {
-  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px;
+  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800; font-size: 30px;
   color: var(--fp-orange); margin: 0; letter-spacing: -0.03em;
 }
 .completa .caja { background: #fff; padding: 22px; border-radius: 22px; }

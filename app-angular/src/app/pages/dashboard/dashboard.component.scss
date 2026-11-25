@@ -8,7 +8,7 @@
 }
 .fecha { margin: 0 0 4px; font-size: 14px; color: var(--fp-gray-mid); }
 .fecha::first-letter { text-transform: uppercase; }
-.cabecera h1 { font-size: 36px; font-weight: 600; letter-spacing: -0.03em; }
+.cabecera h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; }
 .acciones { display: flex; gap: 10px; flex-wrap: wrap; }
 .acciones .fp-btn { text-decoration: none; }
 .acciones svg { width: 18px; height: 18px; }
@@ -23,11 +23,12 @@
 .ind-label { margin: 0; font-size: 13px; color: var(--fp-gray-mid); }
 .ind-valor {
   margin: 0;
-  font-family: 'Archivo', sans-serif;
-  font-weight: 600;
-  font-size: 36px;
+  font-family: 'Archivo', sans-serif; font-stretch: 125%;
+  font-weight: 700;
+  font-size: 38px;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 .ind-nota { margin: 0; font-size: 13px; color: var(--fp-gray-mid); }
 
@@ -43,7 +44,7 @@
   gap: 12px;
   margin-bottom: 14px;
 }
-.card-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.card-head h3 { margin: 0; font-size: 17px; font-weight: 700; }
 .card-head a { font-size: 13px; color: var(--fp-orange); }
 
 .leyenda { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fp-gray-mid); }

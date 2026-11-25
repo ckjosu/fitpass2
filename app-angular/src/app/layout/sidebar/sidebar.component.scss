@@ -28,10 +28,10 @@
 .logo-icon span { width: 9px; height: 9px; border-radius: 3px; background: var(--fp-ink); }
 .logo-title {
   color: #fff;
-  font-family: 'Archivo', sans-serif;
-  font-weight: 700;
+  font-family: 'Archivo', sans-serif; font-stretch: 125%;
+  font-weight: 800;
   font-size: 20px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin: 0;
   line-height: 1;
 }
@@ -53,7 +53,7 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--fp-orange);
-  font-family: 'Archivo', sans-serif;
+  font-family: 'Archivo', sans-serif; font-stretch: 125%;
   font-weight: 700;
   font-size: 13px;
   display: flex; align-items: center; justify-content: center;
