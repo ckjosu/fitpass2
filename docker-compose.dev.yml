@@ -4,6 +4,7 @@
 #
 #   Angular     http://localhost:4200
 #   API         http://localhost:8000/api
+#   Docs Flask  http://localhost:5000
 #   phpMyAdmin  http://localhost:8080
 #   MySQL       localhost:3306
 # =====================================================================
@@ -64,6 +65,23 @@ services:
       - "4200:4200"
     volumes:
       - ./app-angular/src:/app/src
+
+  # Documentacion del proyecto (Flask) -> http://localhost:5000
+  docs:
+    build:
+      context: .
+      dockerfile: docs-flask/Dockerfile
+    container_name: gymred-docs-dev
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:8000/api
+      FLASK_DEBUG: "1"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./docs:/app/docs
 
   phpmyadmin:
     image: phpmyadmin:5

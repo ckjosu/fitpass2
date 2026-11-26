@@ -1,10 +1,39 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { ContratoGimnasio, Gimnasio, Usuario } from '../entities';
-import { ActualizarPerfilDto, CambiarPasswordDto, LoginDto, RegistroClienteDto, RegistroDuenoDto } from './auth.dto';
+import { ContratoGimnasio, Gimnasio, RecuperacionPassword, Usuario } from '../entities';
+import {
+  ActualizarPerfilDto,
+  CambiarPasswordDto,
+  LoginDto,
+  RecuperarDto,
+  RegistroClienteDto,
+  RegistroDuenoDto,
+  RestablecerDto,
+} from './auth.dto';
+import { CorreoService } from '../common/correo.service';
+import {
+  MAX_CODIGOS_POR_HORA,
+  MAX_INTENTOS_CODIGO,
+  MAX_INTENTOS_LOGIN,
+  MINUTOS_BLOQUEO,
+  MINUTOS_CODIGO,
+} from '../common/config-seguridad';
+
+// Hash de relleno: si el correo no existe se compara contra este, para que
+// la respuesta tarde lo mismo y no se pueda adivinar que correos existen.
+const HASH_RELLENO = bcrypt.hashSync('relleno-que-nunca-coincide', 10);
+
+const sha256 = (texto: string) => createHash('sha256').update(texto).digest('hex');
 import { UsuarioToken } from '../common/security';
 
 @Injectable()
@@ -12,8 +41,10 @@ export class AuthService {
   constructor(
     @InjectRepository(Usuario) private usuarios: Repository<Usuario>,
     @InjectRepository(Gimnasio) private gimnasios: Repository<Gimnasio>,
+    @InjectRepository(RecuperacionPassword) private recuperaciones: Repository<RecuperacionPassword>,
     private jwt: JwtService,
     private dataSource: DataSource,
+    private correo: CorreoService,
   ) {}
 
   private firmar(u: Usuario) {
@@ -25,10 +56,41 @@ export class AuthService {
     const usuario = await this.usuarios.findOne({
       where: { email: dto.email.toLowerCase().trim() },
     });
-    if (!usuario || !bcrypt.compareSync(dto.password, usuario.passwordHash)) {
+    if (!usuario) {
+      bcrypt.compareSync(dto.password, HASH_RELLENO);
+      throw new UnauthorizedException('Correo o contrasena incorrectos');
+    }
+
+    // Cuenta bloqueada por intentos fallidos
+    const ahora = new Date();
+    if (usuario.bloqueadoHasta && usuario.bloqueadoHasta > ahora) {
+      const minutos = Math.ceil((usuario.bloqueadoHasta.getTime() - ahora.getTime()) / 60000);
+      throw new HttpException(
+        `Demasiados intentos fallidos. Intenta de nuevo en ${minutos} min o recupera tu contrasena.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    if (!bcrypt.compareSync(dto.password, usuario.passwordHash)) {
+      const intentos = (usuario.intentosFallidos || 0) + 1;
+      if (intentos >= MAX_INTENTOS_LOGIN) {
+        await this.usuarios.update(usuario.id, {
+          intentosFallidos: 0,
+          bloqueadoHasta: new Date(ahora.getTime() + MINUTOS_BLOQUEO * 60000),
+        });
+        throw new HttpException(
+          `Demasiados intentos fallidos. Tu cuenta queda bloqueada ${MINUTOS_BLOQUEO} min.`,
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+      await this.usuarios.update(usuario.id, { intentosFallidos: intentos });
       throw new UnauthorizedException('Correo o contrasena incorrectos');
     }
     if (!usuario.activo) throw new UnauthorizedException('Tu cuenta esta desactivada');
+
+    if (usuario.intentosFallidos || usuario.bloqueadoHasta) {
+      await this.usuarios.update(usuario.id, { intentosFallidos: 0, bloqueadoHasta: null });
+    }
 
     const gimnasios =
       usuario.rol === 'dueno'
@@ -184,7 +246,93 @@ export class AuthService {
       throw new BadRequestException('Tu contrasena actual no coincide');
     }
     usuario.passwordHash = bcrypt.hashSync(dto.nueva, 10);
+    // Cierra las sesiones abiertas en otros dispositivos
+    usuario.sesionesDesde = this.ahoraSinMilisegundos();
     await this.usuarios.save(usuario);
-    return { mensaje: 'Contrasena actualizada' };
+    return { mensaje: 'Contrasena actualizada', token: this.firmar(usuario) };
+  }
+
+  // ------------------------------------------------------------------
+  // Recuperacion de contrasena con codigo de 6 digitos por correo
+  // ------------------------------------------------------------------
+
+  private readonly respuestaRecuperar = {
+    mensaje: 'Si el correo esta registrado, te enviamos un codigo para cambiar tu contrasena.',
+  };
+
+  /** POST /auth/recuperar. Responde siempre lo mismo, exista o no el correo. */
+  async recuperar(dto: RecuperarDto) {
+    const email = dto.email.toLowerCase().trim();
+    const usuario = await this.usuarios.findOne({ where: { email } });
+    if (!usuario || !usuario.activo) return this.respuestaRecuperar;
+
+    const haceUnaHora = new Date(Date.now() - 60 * 60000);
+    const recientes = await this.recuperaciones.count({
+      where: { idUsuario: usuario.id, creadoEn: MoreThan(haceUnaHora) },
+    });
+    if (recientes >= MAX_CODIGOS_POR_HORA) return this.respuestaRecuperar;
+
+    // Solo sirve el codigo mas nuevo
+    await this.recuperaciones.update({ idUsuario: usuario.id, usado: false }, { usado: true });
+
+    const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    await this.recuperaciones.save(
+      this.recuperaciones.create({
+        idUsuario: usuario.id,
+        codigoHash: sha256(`${usuario.id}:${codigo}`),
+        venceEn: new Date(Date.now() + MINUTOS_CODIGO * 60000),
+      }),
+    );
+
+    await this.correo.enviar(
+      usuario.email,
+      'Tu codigo para cambiar la contrasena de Gymred',
+      `<p>Hola ${this.escapar(usuario.nombre)}:</p>
+       <p>Tu codigo para cambiar la contrasena es:</p>
+       <p style="font-size:28px;font-weight:bold;letter-spacing:6px">${codigo}</p>
+       <p>Vence en ${MINUTOS_CODIGO} minutos. Si tu no lo pediste, ignora este correo.</p>`,
+    );
+    return this.respuestaRecuperar;
+  }
+
+  /** POST /auth/restablecer. Cambia la contrasena con el codigo del correo. */
+  async restablecer(dto: RestablecerDto) {
+    const error = new BadRequestException('El codigo no es valido o ya vencio');
+    const usuario = await this.usuarios.findOne({ where: { email: dto.email.toLowerCase().trim() } });
+    if (!usuario || !usuario.activo) throw error;
+
+    const solicitud = await this.recuperaciones.findOne({
+      where: { idUsuario: usuario.id, usado: false, venceEn: MoreThan(new Date()) },
+      order: { id: 'DESC' },
+    });
+    if (!solicitud || solicitud.intentos >= MAX_INTENTOS_CODIGO) throw error;
+
+    const esperado = Buffer.from(solicitud.codigoHash, 'hex');
+    const recibido = Buffer.from(sha256(`${usuario.id}:${dto.codigo}`), 'hex');
+    if (!timingSafeEqual(esperado, recibido)) {
+      solicitud.intentos += 1;
+      if (solicitud.intentos >= MAX_INTENTOS_CODIGO) solicitud.usado = true;
+      await this.recuperaciones.save(solicitud);
+      throw error;
+    }
+
+    solicitud.usado = true;
+    await this.recuperaciones.save(solicitud);
+
+    usuario.passwordHash = bcrypt.hashSync(dto.nueva, 10);
+    usuario.sesionesDesde = this.ahoraSinMilisegundos();
+    usuario.intentosFallidos = 0;
+    usuario.bloqueadoHasta = null;
+    await this.usuarios.save(usuario);
+    return { mensaje: 'Listo, ya puedes entrar con tu nueva contrasena' };
+  }
+
+  /** La columna DATETIME no guarda milisegundos; asi coincide con el iat del token. */
+  private ahoraSinMilisegundos() {
+    return new Date(Math.floor(Date.now() / 1000) * 1000);
+  }
+
+  private escapar(texto: string) {
+    return texto.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
   }
 }

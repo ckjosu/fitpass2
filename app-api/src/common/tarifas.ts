@@ -1,8 +1,8 @@
 import { EntityManager } from 'typeorm';
 
 /**
- * Modelo de pago de FITNEX / Gymred (tipo Wellhub, con los planes del Canvas:
- * Esencial $400 y Plus $500; 30% para FITNEX y 70% para gimnasios).
+ * Modelo de pago de Gymred (tipo Wellhub, con los planes del Canvas:
+ * Esencial $400 y Plus $800; 30% para Gymred y 70% para gimnasios).
  *
  * 1. El gimnasio no paga nada.
  * 2. Cada gimnasio es Esencial o Completo; la categoria sale sola de su
@@ -10,11 +10,11 @@ import { EntityManager } from 'typeorm';
  * 3. Por cada visita se le paga al gimnasio su precio por visita, sin pasar
  *    el tope de su categoria. Se guarda en accesos.pago_gimnasio.
  * 4. Cada socio tiene un fondo al mes = porcentaje_fondo (70%) de su plan.
- *    Es el tope de lo que FITNEX paga por el. Si sus visitas suman mas,
+ *    Es el tope de lo que Gymred paga por el. Si sus visitas suman mas,
  *    se pagan en proporcion (factor = fondo / total). Lo que no usa del
- *    fondo se queda en FITNEX.
+ *    fondo se queda en Gymred.
  *
- * Asi FITNEX nunca paga mas del 70% de lo que cobro.
+ * Asi Gymred nunca paga mas del 70% de lo que cobro.
  */
 
 /** Areas del inventario que se muestran en la ficha del gimnasio. */

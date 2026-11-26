@@ -11,5 +11,7 @@ COPY 06_clases_y_resenas.sql /docker-entrypoint-initdb.d/06_clases_y_resenas.sql
 COPY 07_datos_clases_y_resenas.sql /docker-entrypoint-initdb.d/07_datos_clases_y_resenas.sql
 COPY 08_modelo_wellhub.sql /docker-entrypoint-initdb.d/08_modelo_wellhub.sql
 COPY 09_datos_modelo_wellhub.sql /docker-entrypoint-initdb.d/09_datos_modelo_wellhub.sql
+COPY 10_plus_30_visitas.sql /docker-entrypoint-initdb.d/10_plus_30_visitas.sql
+COPY 11_seguridad.sql /docker-entrypoint-initdb.d/11_seguridad.sql
 
 EXPOSE 3306

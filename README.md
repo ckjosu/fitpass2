@@ -46,6 +46,9 @@ gymred/
 │       ├── layout/                     # Sidebar y topbar
 │       ├── pages/                      # Una carpeta por pantalla
 │       └── shared/map-picker/          # Mapa para fijar la ubicación
+├── docs/                               # Documentación en Markdown
+├── docs-flask/                         # Servidor Flask que publica docs/ (puerto 5000)
+├── tests-selenium/                     # Pruebas automáticas del panel con Selenium
 ├── netlify.toml                        # Despliegue del panel en Netlify
 └── README.md
 ```
@@ -88,7 +91,7 @@ MySQL solo entiende SQL.
 | # | Prueba | Resultado esperado |
 |---|---|---|
 | 1 | Abrir http://localhost:4200 | Carga la pantalla de inicio de sesión de Gymred |
-| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400, 12 visitas) y Plus ($800, 30 visitas) |
+| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400, 15 visitas) y Plus ($800, 30 visitas) |
 | 3 | Abrir http://localhost:8080 | Entra phpMyAdmin con usuario `gymred` y contraseña `gymred123` |
 | 4 | En phpMyAdmin revisar la base `gymred` | Aparecen las tablas y las 2 vistas (ya no existe `solicitudes_plan`) |
 | 5 | Iniciar sesión con `ricardo@ironhouse.mx` / `Gymred123` | Entra al panel y muestra el resumen del gimnasio |
@@ -265,7 +268,7 @@ paga a los gimnasios por las visitas: **30% para Gymred y 70% para gimnasios**.
 
 | Membresía | Precio | Entra a | Visitas | Fondo para gimnasios (70%) |
 |---|---|---|---|---|
-| Esencial | $400 | Todos los gimnasios Esencial | 12 al mes, 1 al día | $280 |
+| Esencial | $400 | Todos los gimnasios Esencial | 15 al mes, 1 al día | $280 |
 | Plus | $800 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 30 al mes, 1 al día | $560 |
 
 El límite de visitas sale de la tabla `planes_plataforma` (`visitas_por_mes`,
@@ -298,7 +301,7 @@ todavía no está en el código.
 
 Para una base que ya estaba en uso se corren una sola vez, en orden,
 `05_modelo_sin_cuota.sql`, `06_clases_y_resenas.sql`, `08_modelo_wellhub.sql` y
-`10_plus_30_visitas.sql`. Los archivos `07_...` y `09_...` solo traen datos de prueba.
+`10_plus_30_visitas.sql` y `11_seguridad.sql`. Los archivos `07_...` y `09_...` solo traen datos de prueba.
 
 ---
 
@@ -314,6 +317,33 @@ Para una base que ya estaba en uso se corren una sola vez, en orden,
 | Administración de BD | phpMyAdmin |
 | Contenedores | Docker y Docker Compose |
 | Producción | Netlify (panel), Render (API) y Aiven (MySQL) |
+| Documentación | Flask 3 (Python) con Markdown |
+| Pruebas | Selenium + pytest (Python) |
+
+---
+
+## 9.1 Seguridad
+
+| Punto | Cómo está |
+|---|---|
+| Contraseñas | bcrypt (costo 10). Nunca se guardan ni se devuelven en texto plano |
+| Intentos de login | 5 fallidos seguidos bloquean la cuenta 15 min (HTTP 429). Además, máximo 10 logins por minuto por IP |
+| Sesión | Token JWT de 12 h (`JWT_EXPIRA`). Al cambiar o recuperar la contraseña se cierran las sesiones de otros dispositivos |
+| Permisos | El socio solo ve lo suyo (se toma del token, nunca de la URL). El dueño solo sus gimnasios (`DuenoDelGimnasioGuard`) |
+| QR | Código aleatorio que vence en 30 s y se valida contra la base; registra cada intento |
+| Recuperar contraseña | `POST /api/auth/recuperar` manda un código de 6 dígitos por correo (vence en 15 min, 5 intentos) y `POST /api/auth/restablecer` lo usa |
+| HTTPS | En producción la API rechaza peticiones por HTTP y manda HSTS |
+| Logs | No se escriben contraseñas, tokens ni códigos |
+| Fotos | Solo JPG, PNG o WebP, máximo 5 MB |
+
+**Variables de entorno en Render**
+
+| Variable | Para qué |
+|---|---|
+| `JWT_SECRET` | Obligatoria, mínimo 32 caracteres. Sin ella la API no arranca en producción |
+| `CORS_ORIGINS` | Dominio del panel en Netlify (`https://...netlify.app`) |
+| `DB_SSL` y `DB_CA` | `true` y el certificado CA de Aiven, para verificar la conexión a la base |
+| `BREVO_API_KEY`, `CORREO_DESDE` | Envío de correos de recuperación por la API de Brevo (Render gratis bloquea SMTP) |
 
 ---
 
@@ -325,6 +355,8 @@ Para una base que ya estaba en uso se corren una sola vez, en orden,
 | Historias de usuario | Rama `historias-de-usuario`, carpeta `historias-de-usuario/` |
 | Contrato de la API | `http://localhost:8000/api/openapi.json` (se genera solo) |
 | Cambios a la base de datos | `docker/*/mysql/`, un script numerado por cambio |
+| Documentación web (Flask) | `docs/` en Markdown, publicada por `docs-flask/` en http://localhost:5000 |
+| Pruebas automáticas | `tests-selenium/` (Selenium + pytest), ver su README |
 | Plan de negocios, pitch y presentaciones | Fuera del repo, con el equipo |
 
 Regla del equipo: si un cambio de código cambia algo de lo que dice este README

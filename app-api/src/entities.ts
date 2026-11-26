@@ -27,6 +27,21 @@ export class Usuario {
   @Column({ type: 'enum', enum: ['admin', 'dueno', 'cliente'] }) rol: Rol;
   @Column() activo: boolean;
   @Column({ name: 'creado_en' }) creadoEn: Date;
+  @Column({ name: 'intentos_fallidos', default: 0 }) intentosFallidos: number;
+  @Column({ name: 'bloqueado_hasta', type: 'datetime', nullable: true }) bloqueadoHasta: Date | null;
+  @Column({ name: 'sesiones_desde', type: 'datetime', nullable: true }) sesionesDesde: Date | null;
+}
+
+/** Codigo de 6 digitos para recuperar la contrasena. Solo se guarda su hash. */
+@Entity('recuperaciones_password')
+export class RecuperacionPassword {
+  @PrimaryGeneratedColumn({ unsigned: true }) id: number;
+  @Column({ name: 'id_usuario' }) idUsuario: number;
+  @Column({ name: 'codigo_hash' }) codigoHash: string;
+  @Column({ name: 'vence_en', type: 'datetime' }) venceEn: Date;
+  @Column({ default: 0 }) intentos: number;
+  @Column({ default: false }) usado: boolean;
+  @Column({ name: 'creado_en', type: 'datetime', insert: false, update: false }) creadoEn: Date;
 }
 
 @Entity('gimnasios')
@@ -71,9 +86,6 @@ export class FotoGimnasio {
   @Column({ name: 'id_gimnasio' }) idGimnasio: number;
   @Column() url: string;
   @Column({ nullable: true }) descripcion: string;
-  /** La imagen se guarda en la base: el disco de Render se borra en cada reinicio. */
-  @Column({ type: 'mediumblob', nullable: true, select: false }) datos: Buffer | null;
-  @Column({ type: 'varchar', length: 40, nullable: true, select: false }) tipo: string | null;
   @Column() portada: boolean;
   @Column() orden: number;
   @ManyToOne(() => Gimnasio) @JoinColumn({ name: 'id_gimnasio' }) gimnasio: Gimnasio;
@@ -190,8 +202,7 @@ export class Acceso {
   @Column({ name: 'id_cliente', nullable: true }) idCliente: number;
   @Column({ name: 'id_credencial', nullable: true }) idCredencial: number;
   @Column({ name: 'codigo_leido' }) codigoLeido: string;
-  /** 'reingreso' = volvio a entrar el mismo dia al mismo gimnasio: no cuenta ni se paga. */
-  @Column() resultado: 'permitido' | 'denegado' | 'reingreso';
+  @Column() resultado: 'permitido' | 'denegado';
   @Column({ nullable: true }) motivo: string;
   /** Lo que Gymred le debe al gimnasio por esta visita. */
   @Column({ name: 'pago_gimnasio', type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: numT }) pagoGimnasio: number;
@@ -276,7 +287,7 @@ export class Incidencia {
 export class ConfiguracionGimnasio {
   @PrimaryColumn({ name: 'id_gimnasio', unsigned: true }) idGimnasio: number;
   @Column() tema: 'claro' | 'oscuro';
-  @Column({ name: 'color_acento' }) colorAcento: 'rojo' | 'naranja' | 'azul' | 'verde' | 'morado';
+  @Column({ name: 'color_acento' }) colorAcento: 'naranja' | 'azul' | 'verde' | 'morado';
   @Column({ name: 'modo_validacion' }) modoValidacion: 'en_linea' | 'tolerancia_sin_conexion';
   @Column({ name: 'tolerancia_segundos' }) toleranciaSegundos: number;
   @Column({ name: 'avisar_por_correo' }) avisarPorCorreo: boolean;

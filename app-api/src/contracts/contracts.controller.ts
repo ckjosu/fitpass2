@@ -13,7 +13,7 @@ export class ContractsController {
 
   @Get('fitnex/:anio/:mes')
   @Roles('admin')
-  @ApiOperation({ summary: 'Solo admin: cuanto se cobro, cuanto se paga a gimnasios y cuanto queda para FITNEX' })
+  @ApiOperation({ summary: 'Solo admin: cuanto se cobro, cuanto se paga a gimnasios y cuanto queda para Gymred' })
   resumenFitnex(@Param('anio', ParseIntPipe) anio: number, @Param('mes', ParseIntPipe) mes: number) {
     return this.contratos.resumenFitnex(anio, mes);
   }

@@ -8,8 +8,8 @@ import { calcularMes, clasificar, pagoDelGimnasio, pagoPorVisita, topes } from '
 /**
  * Afiliacion del gimnasio y pagos.
  * El gimnasio no paga nada. Pone su precio por visita (con tope segun su
- * categoria) y FITNEX se lo paga por cada visita, sin pasar el fondo de
- * cada socio (30% FITNEX / 70% gimnasios, como en el Canvas).
+ * categoria) y Gymred se lo paga por cada visita, sin pasar el fondo de
+ * cada socio (30% Gymred / 70% gimnasios, como en el Canvas).
  * Ver common/tarifas.ts.
  */
 @Injectable()
@@ -113,7 +113,7 @@ export class ContractsService {
     return { mensaje: `Cierre de ${mes}/${anio} listo`, liquidaciones: guardadas, totales: calculo.totales };
   }
 
-  /** Cuanto cobro FITNEX, cuanto pago a gimnasios y cuanto le quedo. */
+  /** Cuanto cobro Gymred, cuanto pago a gimnasios y cuanto le quedo. */
   async resumenFitnex(anio: number, mes: number) {
     const calculo = await calcularMes(this.afiliaciones.manager, anio, mes);
     const [pasarela] = await this.afiliaciones.manager.query(

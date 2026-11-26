@@ -4,14 +4,42 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { mkdirSync } from 'fs';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { EN_PRODUCCION } from './common/config-seguridad';
 import { LimpiarTextoPipe } from './common/limpiar-texto.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: true, credentials: true, methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', allowedHeaders: 'Content-Type,Authorization' });
+
+  // Render esta detras de un proxy: asi la IP real del cliente llega al
+  // limite de intentos y se sabe si la peticion vino por HTTPS.
+  app.set('trust proxy', 1);
+
+  // En produccion todo va por HTTPS: si algo llega por HTTP se rechaza.
+  if (EN_PRODUCCION) {
+    app.use((req: any, res: any, next: () => void) => {
+      if (req.headers['x-forwarded-proto'] === 'http') {
+        return res.status(403).json({ statusCode: 403, message: 'Usa HTTPS' });
+      }
+      next();
+    });
+  }
+
+  // Cabeceras de seguridad (HSTS, nosniff, etc.). Las fotos se cargan desde
+  // el panel en otro dominio, por eso cross-origin.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+  // CORS_ORIGINS = dominios del panel separados por coma. La app movil no
+  // manda Origin, asi que no le afecta.
+  const origenes = (process.env.CORS_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
+  app.enableCors({
+    origin: origenes.length ? origenes : true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
   // El orden importa: primero se limpia el texto y luego se valida,
   // para que un nombre con espacios de sobra no pase como distinto.
   app.useGlobalPipes(

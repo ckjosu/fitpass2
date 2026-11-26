@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ example: 'ricardo@ironhouse.mx' })
@@ -61,3 +61,24 @@ export class ActualizarPerfilDto {
   passwordActual?: string;
 }
 
+
+export class RecuperarDto {
+  @ApiProperty({ example: 'ana@correo.com' })
+  @IsEmail({}, { message: 'Escribe un correo valido' })
+  email: string;
+}
+
+export class RestablecerDto {
+  @ApiProperty({ example: 'ana@correo.com' })
+  @IsEmail({}, { message: 'Escribe un correo valido' })
+  email: string;
+
+  @ApiProperty({ example: '048213', description: 'Codigo de 6 digitos que llego por correo' })
+  @Matches(/^\d{6}$/, { message: 'El codigo son 6 numeros' })
+  codigo: string;
+
+  @ApiProperty({ example: 'MiClaveNueva1' })
+  @IsString()
+  @MinLength(6, { message: 'La contrasena debe tener al menos 6 caracteres' })
+  nueva: string;
+}
