@@ -1,4 +1,4 @@
-﻿"""
+"""
 Servidor de documentaciÃ³n de Gymred (Flask).
 
 Publica los archivos Markdown de ../docs como pÃ¡ginas web y ademÃ¡s:
@@ -35,10 +35,12 @@ PAGINAS = [
     ("arquitectura", "arquitectura", "Arquitectura"),
     ("estructura", "estructura", "Estructura del repo"),
     ("api", None, "API"),
+    ("apidocs", None, "Probar la API"),
     ("base-de-datos", "base-de-datos", "Base de datos"),
     ("servidor", "servidor", "Servidor"),
     ("seguridad", "seguridad", "Seguridad"),
     ("pruebas", "pruebas", "Pruebas"),
+    ("historias", "historias", "Historias de usuario"),
     ("estado", None, "Estado"),
 ]
 MD_POR_RUTA = {ruta: archivo for ruta, archivo, _ in PAGINAS if archivo}
@@ -118,6 +120,25 @@ def api():
     grupos = {k: v for k, v in grupos.items() if v["rutas"]}
     return render_template("api.html", grupos=grupos, total=total, en_vivo=en_vivo,
                            fuente=fuente, activa="api")
+
+
+@app.route("/apidocs")
+def apidocs():
+    """Swagger UI: deja probar cada ruta de la API desde el navegador."""
+    return render_template("apidocs.html", api=API_URL, activa="apidocs")
+
+
+@app.route("/apidocs/openapi.json")
+def apidocs_contrato():
+    """Contrato de la API con la direccion del servidor puesta, para que
+    Swagger mande las peticiones a la API (Render o local) y no a Flask."""
+    try:
+        contrato = pedir_json(f"{API_URL}/openapi.json")
+    except Exception:
+        contrato = json.loads((DOCS_DIR / "openapi.json").read_text(encoding="utf-8"))
+    raiz = API_URL[: -len("/api")] if API_URL.endswith("/api") else API_URL
+    contrato["servers"] = [{"url": raiz, "description": "API de Gymred"}]
+    return jsonify(contrato)
 
 
 def revisar_api():

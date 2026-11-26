@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>Probar la API</h1>
+<p>Aquí se puede ejecutar cada ruta de la API y ver la respuesta real. Las peticiones van a <code>{{ api }}</code>.</p>
+<ol>
+  <li>Abre <code>POST /api/auth/login</code>, da clic en <b>Try it out</b>, escribe correo y contraseña y da <b>Execute</b>.</li>
+  <li>Copia el <code>token</code> de la respuesta.</li>
+  <li>Da clic en <b>Authorize</b>, pega el token y acepta.</li>
+  <li>Ya puedes probar las rutas con candado, por ejemplo <code>GET /api/gimnasios/mios</code>.</li>
+</ol>
+<p class="tenue">Ojo: si la API es la de producción, las rutas POST, PUT y DELETE cambian datos reales. Para la expo usa rutas GET o la API local.</p>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+<div id="swagger" class="swagger-caja"></div>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  window.addEventListener("load", function () {
+    SwaggerUIBundle({
+      url: "{{ url_for('apidocs_contrato') }}",
+      dom_id: "#swagger",
+      docExpansion: "none",
+      persistAuthorization: true
+    });
+  });
+</script>
+{% endblock %}
