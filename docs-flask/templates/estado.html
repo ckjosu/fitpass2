@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>Estado del servidor</h1>
+{% if estado.responde %}
+  <p><span class="chip ok">La API responde</span> en {{ estado.milisegundos }} ms</p>
+  <p>Planes activos: {{ estado.planes|join(', ') }}</p>
+{% else %}
+  <p><span class="chip aviso">La API no responde</span> ({{ estado.error }}). Si está en Render gratis, puede estar dormida: espera unos 30 segundos y recarga.</p>
+{% endif %}
+<p>API revisada: <code>{{ estado.api }}</code></p>
+<p>También en JSON: <a href="/estado.json"><code>/estado.json</code></a></p>
+{% endblock %}

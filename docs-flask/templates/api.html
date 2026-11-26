@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>API</h1>
+<p>{{ total }} rutas.
+  {% if en_vivo %}<span class="chip ok">Leído en vivo</span> de <code>{{ fuente }}</code>
+  {% else %}<span class="chip aviso">La API no respondió</span> se muestra la copia guardada en <code>docs/openapi.json</code>{% endif %}
+</p>
+<p>🔒 = necesita token (inicia sesión con <code>POST /api/auth/login</code>).</p>
+{% for nombre, grupo in grupos.items() %}
+  <h2>{{ nombre }}</h2>
+  {% if grupo.descripcion %}<p class="tenue">{{ grupo.descripcion }}</p>{% endif %}
+  <table>
+    <tr><th>Método</th><th>Ruta</th><th>Qué hace</th><th></th></tr>
+    {% for r in grupo.rutas %}
+      <tr>
+        <td><span class="metodo {{ r.metodo|lower }}">{{ r.metodo }}</span></td>
+        <td><code>{{ r.ruta }}</code></td>
+        <td>{{ r.resumen }}</td>
+        <td>{{ '🔒' if r.protegida else '' }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endfor %}
+{% endblock %}

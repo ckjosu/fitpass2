@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block contenido %}
+{{ contenido }}
+<h2>Tablas ({{ tablas|length }})</h2>
+<p class="tenue">Leídas de los <code>CREATE TABLE</code> de <code>docker/prod/mysql/*.sql</code>.</p>
+<div class="tablas">
+  {% for nombre, t in tablas.items() %}
+    <details>
+      <summary><code>{{ nombre }}</code> <span class="tenue">{{ t.columnas|length }} columnas · {{ t.archivo }}</span></summary>
+      <table>
+        <tr><th>Columna</th><th>Tipo</th></tr>
+        {% for c in t.columnas %}<tr><td><code>{{ c.nombre }}</code></td><td>{{ c.tipo }}</td></tr>{% endfor %}
+      </table>
+    </details>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gymred · Documentación</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+  <aside class="menu">
+    <a class="marca" href="{{ url_for('pagina') }}">
+      <span class="logo" aria-hidden="true">G</span> Gymred <small>docs</small>
+    </a>
+    <nav>
+      {% for ruta, titulo in menu %}
+        <a href="/{{ ruta }}" class="{{ 'activa' if activa == ruta else '' }}">{{ titulo }}</a>
+      {% endfor %}
+    </nav>
+    <p class="pie">TacoCoders · ITESCAM<br>Servido con Flask</p>
+  </aside>
+  <main class="contenido">
+    {% block contenido %}{% endblock %}
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+  </script>
+</body>
+</html>

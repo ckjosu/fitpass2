@@ -5,3 +5,8 @@ dist/
 app-api/uploads/
 .DS_Store
 *.log
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
