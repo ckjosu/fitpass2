@@ -1,15 +1,15 @@
-"""
-Servidor de documentación de Gymred (Flask).
+﻿"""
+Servidor de documentaciÃ³n de Gymred (Flask).
 
-Publica los archivos Markdown de ../docs como páginas web y además:
+Publica los archivos Markdown de ../docs como pÃ¡ginas web y ademÃ¡s:
   /api            lista las rutas de la API leyendo su contrato OpenAPI en vivo
   /base-de-datos  muestra las tablas leyendo los scripts SQL del repo
-  /estado         revisa si la API responde (también en JSON: /estado.json)
+  /estado         revisa si la API responde (tambiÃ©n en JSON: /estado.json)
 
 Variables de entorno:
-  API_URL     dirección de la API (por omisión https://gymred-api.onrender.com/api)
-  DOCS_DIR    carpeta con los .md     (por omisión ../docs)
-  SQL_DIR     carpeta con los .sql    (por omisión ../docker/prod/mysql)
+  API_URL     direcciÃ³n de la API (por omisiÃ³n https://gymred-api.onrender.com/api)
+  DOCS_DIR    carpeta con los .md     (por omisiÃ³n ../docs)
+  SQL_DIR     carpeta con los .sql    (por omisiÃ³n ../docker/prod/mysql)
 """
 import json
 from html import escape
@@ -28,7 +28,7 @@ DOCS_DIR = Path(os.getenv("DOCS_DIR", BASE.parent / "docs"))
 SQL_DIR = Path(os.getenv("SQL_DIR", BASE.parent / "docker" / "prod" / "mysql"))
 API_URL = os.getenv("API_URL", "https://gymred-api.onrender.com/api").rstrip("/")
 
-# Menú: (ruta, archivo .md, título). Solo se sirven estos archivos.
+# MenÃº: (ruta, archivo .md, tÃ­tulo). Solo se sirven estos archivos.
 PAGINAS = [
     ("", "index", "Inicio"),
     ("modelo-de-negocio", "modelo-de-negocio", "Modelo de negocio"),
@@ -65,7 +65,7 @@ def leer_markdown(nombre: str) -> Markup:
     texto = re.sub(r"```mermaid\n(.*?)```", apartar, texto, flags=re.S)
     html = markdown.markdown(texto, extensions=["tables", "fenced_code", "toc"])
     for i, codigo in enumerate(diagramas):
-        html = html.replace(f"<p>DIAGRAMA{i}</p>", f'<pre class="mermaid">{escape(codigo)}</pre>')
+        html = html.replace(f"<p>DIAGRAMA{i}</p>", f'<pre class="mermaid">{escape(codigo, quote=False)}</pre>')
     return Markup(html)
 
 
@@ -75,7 +75,7 @@ def pedir_json(url: str, segundos: float = 6):
 
 
 # ---------------------------------------------------------------------------
-# Páginas
+# PÃ¡ginas
 # ---------------------------------------------------------------------------
 
 @app.route("/")
@@ -166,7 +166,7 @@ def tablas_sql():
 
 @app.errorhandler(404)
 def no_existe(_):
-    return render_template("pagina.html", contenido=Markup("<h1>No existe esa página</h1>"), activa=None), 404
+    return render_template("pagina.html", contenido=Markup("<h1>No existe esa pÃ¡gina</h1>"), activa=None), 404
 
 
 if __name__ == "__main__":
