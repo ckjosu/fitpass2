@@ -27,7 +27,9 @@ gymred/
 │   │       ├── 07_datos_clases_y_resenas.sql   # solo datos de prueba
 │   │       ├── 08_modelo_wellhub.sql
 │   │       ├── 09_datos_modelo_wellhub.sql     # solo datos de prueba
-│   │       └── 10_plus_30_visitas.sql
+│   │       ├── 10_diseno_negro_rojo.sql
+│   │       ├── 11_dias_y_fotos.sql
+│   │       └── 12_seguridad.sql
 │   └── prod/
 │       ├── api/Dockerfile              # Imagen compilada de la API
 │       ├── angular/Dockerfile          # Angular compilado servido por nginx
@@ -91,7 +93,7 @@ MySQL solo entiende SQL.
 | # | Prueba | Resultado esperado |
 |---|---|---|
 | 1 | Abrir http://localhost:4200 | Carga la pantalla de inicio de sesión de Gymred |
-| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400, 15 visitas) y Plus ($800, 30 visitas) |
+| 2 | Abrir http://localhost:8000/api/movil/planes | Devuelve el JSON con los planes Esencial ($400, 15 días) y Plus ($800, 30 días) |
 | 3 | Abrir http://localhost:8080 | Entra phpMyAdmin con usuario `gymred` y contraseña `gymred123` |
 | 4 | En phpMyAdmin revisar la base `gymred` | Aparecen las tablas y las 2 vistas (ya no existe `solicitudes_plan`) |
 | 5 | Iniciar sesión con `ricardo@ironhouse.mx` / `Gymred123` | Entra al panel y muestra el resumen del gimnasio |
@@ -268,10 +270,13 @@ paga a los gimnasios por las visitas: **30% para Gymred y 70% para gimnasios**.
 
 | Membresía | Precio | Entra a | Visitas | Fondo para gimnasios (70%) |
 |---|---|---|---|---|
-| Esencial | $400 | Todos los gimnasios Esencial | 15 al mes, 1 al día | $280 |
-| Plus | $800 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 30 al mes, 1 al día | $560 |
+| Esencial | $400 | Todos los gimnasios Esencial | 15 días al mes | $280 |
+| Plus | $800 | Gimnasios Esencial y Completo, ocupación y recomendaciones | 30 días al mes | $560 |
 
-El límite de visitas sale de la tabla `planes_plataforma` (`visitas_por_mes`,
+Se cuenta por **día**: el socio entra a un gimnasio por día y puede salir y volver a entrar
+ese mismo día sin gastar otro (se guarda como `reingreso` y no se le paga al gimnasio).
+
+El límite sale de la tabla `planes_plataforma` (`visitas_por_mes`,
 `visitas_por_dia`), así que para cambiarlo basta con un script SQL.
 
 **Categorías de gimnasio** (salen solas del inventario, tabla `categorias_gimnasio`):
@@ -301,7 +306,7 @@ todavía no está en el código.
 
 Para una base que ya estaba en uso se corren una sola vez, en orden,
 `05_modelo_sin_cuota.sql`, `06_clases_y_resenas.sql`, `08_modelo_wellhub.sql` y
-`10_plus_30_visitas.sql` y `11_seguridad.sql`. Los archivos `07_...` y `09_...` solo traen datos de prueba.
+`10_diseno_negro_rojo.sql`, `11_dias_y_fotos.sql` y `12_seguridad.sql`. Los archivos `07_...` y `09_...` solo traen datos de prueba.
 
 ---
 

@@ -2,10 +2,13 @@
 
 Solo paga el socio. Los gimnasios se afilian **gratis**.
 
-| Plan | Precio | Visitas | Entra a | Fondo para gimnasios (70%) |
+| Plan | Precio | Días | Entra a | Fondo para gimnasios (70%) |
 |---|---|---|---|---|
-| Esencial | $400 al mes | 15 al mes, 1 al día | Gimnasios Esencial | $280 |
-| Plus | $800 al mes | 30 al mes, 1 al día | Gimnasios Esencial y Completo | $560 |
+| Esencial | $400 al mes | 15 al mes | Gimnasios Esencial | $280 |
+| Plus | $800 al mes | 30 al mes | Gimnasios Esencial y Completo | $560 |
+
+Se cuenta por **día**: un gimnasio por día, y el socio puede salir y volver a entrar ese mismo
+día sin gastar otro. Esas reentradas no se le pagan al gimnasio.
 
 De cada membresía, **70%** es el fondo del socio para pagar sus visitas y **30%** es para Gymred.
 

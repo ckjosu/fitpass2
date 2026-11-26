@@ -33,7 +33,8 @@ todos se pueden correr más de una vez.
 | 05_modelo_sin_cuota.sql | Los gimnasios ya no pagan cuota |
 | 06_clases_y_resenas.sql | Clases, reservas y reseñas |
 | 08_modelo_wellhub.sql | Planes Esencial y Plus, categorías y topes |
-| 10_plus_30_visitas.sql | Plus a $800 con 30 visitas |
-| 11_seguridad.sql | Bloqueo por intentos y recuperación de contraseña |
+| 10_diseno_negro_rojo.sql | Diseño del panel en negro y rojo |
+| 11_dias_y_fotos.sql | Modelo por días (Esencial 15, Plus 30), reingresos y fotos en la base |
+| 12_seguridad.sql | Bloqueo por intentos y recuperación de contraseña |
 
 Los scripts 07 y 09 solo traen datos de prueba.
