@@ -43,6 +43,8 @@ def test_mis_ganancias(navegador):
     esperar(navegador).until(
         EC.text_to_be_present_in_element((By.CSS_SELECTOR, "h1.fp-heading"), "Mis ganancias")
     )
-    cuerpo = esperar(navegador).until(EC.presence_of_element_located((By.TAG_NAME, "main"))).text
+    # Espera a que terminen de cargar los datos de la API
+    esperar(navegador).until(EC.text_to_be_present_in_element((By.TAG_NAME, "main"), "tope"))
+    cuerpo = navegador.find_element(By.TAG_NAME, "main").text
     assert "por visita" in cuerpo
     assert "tope" in cuerpo.lower()

@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from conftest import EMAIL, PASSWORD, URL
 
-ESPERA = 15  # segundos
+ESPERA = 30  # segundos
 
 
 def esperar(driver):
